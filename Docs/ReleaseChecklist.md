@@ -8,14 +8,14 @@
 - [x] Original 14-species balance plus six custom-class numeric profiles, rationale and generated `Patches/ColdTolerance.xml` committed. Values are model assumptions, not universal measured plant death limits.
 - [x] CI asserts 20 included core Defs / six preserved custom-class identities / zero exclusions, metadata and XML values, no addon C# or bundled DLL, and 9 CCTO Vanilla/MO counterpart values from current CCTO `main`.
 - [ ] Confirm these source/CI gates again against the exact candidate to be published. Mark any missing or failed check as a release blocker.
-- [ ] List precisely which VPE packs are **implemented** in the released build. Inventory-only packs (More Plants, Mushrooms, Succulents, Flowers) must not be advertised as supported before their conditional XML, values and tests are committed.
+- [x] Public drafts name **only 20 VPE core plants** as implemented and exclude all optional VPE packs. The optional packs (More Plants, Mushrooms, Succulents, Flowers) stay unsupported until implemented.
 - [ ] Verify original VPE 1.6 source/Def identity still matches all 20 core DefNames and six custom classes; evaluate beet winter growth and cherry winter blossom caveats in reports if raised. **Do not imply RimWorld 1.7 VPE support.**
 
 ## Actual distribution gates — author controlled
 
 - [ ] Inspect the exact subscriber package: `About/About.xml`, `Patches/ColdTolerance.xml`, required identity/attribution only; no `Docs/`, `Scripts/`, `Tests/`, local test checkouts or DLLs.
-- [ ] English and Japanese public descriptions explicitly state: **not independently tested in a running game; user bug reports welcomed**. Include the [bug-report link](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose).
-- [ ] Obtain author publication decision; align version/changelog/Workshop description if publishing. This GitHub change **does not upload** anything to Steam.
+- [x] Prepared English/Japanese Workshop and Japanese 2game descriptions explicitly state: **not independently tested in a running game; user bug reports welcomed**. Include the [bug-report link](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose).
+- [x] Initial 0.1.0 About/Manifest/Changelog source synchronized; Workshop upload and public visibility require separate author action. This GitHub change **does not upload** anything to Steam.
 - [ ] After manual Steam upload, independently verify the actual published subscriber payload; do not infer upload/download success from source CI.
 
 ## Post-distribution (not a prerequisite to source integration)

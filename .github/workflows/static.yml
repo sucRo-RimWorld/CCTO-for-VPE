@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Checkout current CCTO main for seven-plant parity
+      - name: Checkout current CCTO main for nine-plant parity
         uses: actions/checkout@v4
         with:
           repository: sucRo-RimWorld/RimWorld-Crop-Cold-Tolerance-Overhaul
@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             Patches
-      - name: Verify metadata, 14+6 scope and seven live-source CCTO parity
+      - name: Verify metadata, 20-plant scope and nine live-source CCTO parity
         env:
           CCTO_SOURCE_ROOT: .ccto-base
           CCTO_PARITY_REQUIRED: '1'
