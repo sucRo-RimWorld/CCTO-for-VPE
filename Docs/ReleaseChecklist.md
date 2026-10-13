@@ -8,6 +8,7 @@
 - [x] Initial 14-species numeric balance, rationale and generated `Patches/ColdTolerance.xml` committed. Values are model assumptions, not universal measured plant death limits.
 - [x] CI asserts 14 included Defs / six excluded special-class Defs, metadata and XML values, no addon C# or bundled DLL, and 7 CCTO Vanilla/MO counterpart values from current CCTO `main`.
 - [ ] Confirm these source/CI gates again against the exact candidate to be published. Mark any missing or failed check as a release blocker.
+- [ ] List precisely which VPE packs are **implemented** in the released build. Inventory-only packs (More Plants, Mushrooms, Succulents, Flowers) must not be advertised as supported before their conditional XML, values and tests are committed.
 - [ ] Verify VPE 1.6 source/Def identity still matches the supported version. **Do not imply RimWorld 1.7 VPE support.**
 
 ## Actual distribution gates — author controlled
