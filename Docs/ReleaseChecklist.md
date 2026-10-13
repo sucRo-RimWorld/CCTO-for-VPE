@@ -11,6 +11,14 @@
 - [x] Public drafts name **only 20 VPE core plants** as implemented and exclude all optional VPE packs. The optional packs (More Plants, Mushrooms, Succulents, Flowers) stay unsupported until implemented.
 - [x] VPE upstream `main` at `6823417d3aa206880a8cc9fe7c2239f3cb66a78b` has all 20 matching DefNames in `1.6/Defs/ThingDefs_Plants/Plants_Cultivated_Farm.xml` and `Plants_Cultivated_Trees.xml`; all six custom-class identities also match. This is **source inspection, not loaded-game testing**. Beet winter growth and cherry winter blossoms remain noted caveats; do not imply VPE 1.7 support.
 
+## Optional author-private SteamCMD route
+
+- [x] A GitHub manual-only SteamCMD `preflight`/conditional `upload_private` workflow is implemented for **CCTO for VPE only**. The uploader hardcodes AppID `294100`, visibility `2` (creator-only), source/payload byte matching, existing-ID persistence and refusal of unconfirmed new item creation. See [SteamCMDPrivatePublishing](SteamCMDPrivatePublishing.md). Source-level tests use a mock SteamCMD, not real Steam.
+- [ ] Provision/verify a **dedicated publisher** self-hosted runner with label `steamcmd-private-publisher`, secure local SteamCMD installation and separately authenticated Steam account; configure `steam-workshop-private` GitHub environment/review protections. This is independent of the Project native RimWorld testing host. No password, Steam Guard code or Steam token may be stored in GitHub.
+- [ ] Run a **manual** `preflight` against an exact current main commit; only then, with private author authorization, run `upload_private` (first item requires `create_new_item=true` and `PRIVATE_ONLY`; updates require the saved ID and private verification).
+- [ ] Confirm successful SteamCMD creation/update, preserve real PublishedFileId in the isolated runner, and **verify as creator** that the Workshop item is actually private and the subscribed payload matches the six authorized files. CI/SteamCMD success alone does not prove visibility or subscriber content.
+- [ ] Keep the actual item private until the author separately directs any public switch. No automated public upload or publicity transition is implemented.
+
 ## Actual distribution gates — author controlled
 
 - [x] PR #13 merged release candidate ZIP is produced by `Scripts/build_release.py` and checked by `Tests/test_release_candidate.py`: exactly `About/About.xml`, `About/Manifest.xml`, `About/Changelog.txt`, `About/Preview.png`, `Patches/ColdTolerance.xml`, `LICENSE`. No `Docs/`, `Scripts/`, `Tests/`, copied provider DLL or child-pack XML. Both source and preview PNG SHA-256 match the author-approved `Docs/ApprovedPreview.json`.

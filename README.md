@@ -19,6 +19,7 @@ See [owner design](Docs/Design.md), [balance status](Docs/PlantBalance.json) and
 - **Save status:** The addon patches existing PlantDefs using XML only, without introducing save components or new plant definitions. Adding it to or removing it from an existing save has not been tested in-game. Living plants should adopt the updated temperature settings on loading; removing this addon cannot revive plants already killed by cold.
 - **Public copy:** [combined Workshop EN/JA](Docs/SteamWorkshopDescription.txt) and [2game Japanese](Docs/2GameDescription-ja.txt); the current source-prepared version is 0.1.0. No other VPE plant-family addons are covered.
 - **Packaging:** Run `python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip`; this produces a strictly inventoried subscriber ZIP and performs payload validation, not game or Steam upload validation.
+- **Private SteamCMD path:** [SteamCMD private-only publisher](Docs/SteamCMDPrivatePublishing.md). Manual `preflight` requires no Steam account or publisher runner; `upload_private` requires a dedicated trusted, authenticated runner and explicit manual confirmation. No public-publish mode and no real Steam upload yet.
 
 ## 日本語
 

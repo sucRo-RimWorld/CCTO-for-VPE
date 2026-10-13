@@ -1,0 +1,121 @@
+name: CCTO for VPE SteamCMD private upload
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'preflight validates only; upload_private requires isolated SteamCMD runner'
+        required: true
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - upload_private
+      exact_main_sha:
+        description: 'Exactly 40 hex chars of the approved current main HEAD'
+        type: string
+        required: true
+      create_new_item:
+        description: 'True only for the FIRST private item; otherwise keep false to update the saved ID'
+        type: boolean
+        default: false
+        required: true
+      confirmation:
+        description: 'For upload_private type PRIVATE_ONLY; preflight does not upload'
+        type: string
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: ccto-vpe-steam-private-publishing
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify manual default-branch authorization (no untrusted refs)
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+          REQUESTED_MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          CREATE_NEW: ${{ inputs.create_new_item }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" == 'sucRo-RimWorld/CCTO-for-VPE' ]] || exit 2
+          [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && "$GITHUB_REF" == 'refs/heads/main' ]] || exit 2
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]] || exit 2
+          if [[ "$REQUESTED_MODE" == 'upload_private' ]]; then
+            [[ "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
+          else
+            [[ "$REQUESTED_MODE" == 'preflight' && "$CREATE_NEW" == 'false' ]] || exit 2
+          fi
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Checkout CCTO main for nine counterpart parity checks
+        uses: actions/checkout@v4
+        with:
+          repository: sucRo-RimWorld/RimWorld-Crop-Cold-Tolerance-Overhaul
+          ref: main
+          path: .ccto-base
+          persist-credentials: false
+          sparse-checkout: |
+            Patches
+      - name: Verify exact-source plant contracts, approved preview and uploader safety
+        env:
+          CCTO_SOURCE_ROOT: .ccto-base
+          CCTO_PARITY_REQUIRED: '1'
+        run: python -m unittest discover -s Tests -p 'test_*.py' -v
+      - name: Build exactly six subscriber files
+        run: |
+          python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
+          python Scripts/steamcmd_private.py --zip Dist/CCTO-for-VPE-0.1.0.zip
+          sha256sum Dist/CCTO-for-VPE-0.1.0.zip > Dist/sha256.txt
+      - name: Retain candidate for publisher job and auditing
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccto-for-vpe-0.1.0-private-candidate
+          path: |
+            Dist/CCTO-for-VPE-0.1.0.zip
+            Dist/sha256.txt
+          if-no-files-found: error
+          retention-days: 7
+  upload_private:
+    needs: preflight
+    if: ${{ inputs.mode == 'upload_private' }}
+    # Dedicated, isolated publisher host. Do NOT attach this label to general PR/test runners.
+    runs-on: [self-hosted, linux, steamcmd-private-publisher]
+    environment: steam-workshop-private
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: ccto-for-vpe-0.1.0-private-candidate
+          path: Dist
+      - name: Verify candidate artifact digest and reviewed source before invoking SteamCMD
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd Dist
+          sha256sum -c sha256.txt
+      - name: SteamCMD private-only create/update (no credentials in GitHub)
+        shell: bash
+        env:
+          CREATE_NEW: ${{ inputs.create_new_item }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          # CCTO_STEAMCMD_BIN, CCTO_STEAM_ACCOUNT and CCTO_STEAM_STATE
+          # must already be configured LOCALLY on the isolated runner.
+          flags=()
+          if [[ "$CREATE_NEW" == 'true' ]]; then flags+=(--create-new); fi
+          python3 Scripts/steamcmd_private.py \
+            --zip Dist/CCTO-for-VPE-0.1.0.zip \
+            --execute --confirm "$CONFIRMATION" "${flags[@]}"

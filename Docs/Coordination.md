@@ -33,3 +33,10 @@ Verified VPE 1.6 custom class methods, RimWorld 1.6 Plant.TickLong and PlantUtil
 **Owner:** CCTO for VPE core PlantDefs. **Status:** SOURCE XML FOR 20 VPE BASE PLANTS; 6/6 PREVIOUSLY DEFERRED CLASS TARGETS NOW INCLUDED; CCTO PARITY EXPANDED TO 9; NATIVE GAMEPLAY UNVERIFIED.
 
 PlantBalance.json owns added numerical decisions; [SixCustomClassBalance](Research/SixCustomClassBalance.md) owns six-class justification. Generator and static suite now validate 20 core XML targets and preserved `thingClass` identities without adding C#. CCTO base Vanilla/MO remains untouched; optional More Plants/Mushrooms/Succulents/Flowers are still only candidate packs in issue #8. Native testing remains waived by author and bug reporting #4. No Steam publication performed.
+
+## VPE-STEAMCMD-PRIVATE-PUBLISHER-20261013
+
+**Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
+**Status:** PRIVATE-ONLY STEAMCMD WORKFLOW/SCRIPT + OFFLINE TESTS IMPLEMENTED; DEDICATED RUNNER/LOCAL STEAM AUTHENTICATION/UPLOAD NOT VERIFIED.
+
+The author accepted ChatGPT→GitHub Actions→isolated self-hosted SteamCMD as an optional path for **creating/updating a private Workshop item only**. Manual `workflow_dispatch` `preflight` runs source tests/payload verification without Steam; `upload_private` is guarded by exact `main` SHA and `PRIVATE_ONLY`, and requires dedicated runner label `steamcmd-private-publisher` and locally managed Steam session. AppID 294100, visibility `2`, persistent local PublishedFileId, no GitHub credentials, and no automatic public transition are enforced by `Scripts/steamcmd_private.py` and `.github/workflows/steam-private.yml`. Author must later provision host, perform first private upload and verify actual item visibility and subscriber ZIP. Formal owner runbook: `Docs/SteamCMDPrivatePublishing.md`; [ReleaseChecklist](ReleaseChecklist.md). Does not remove author waiver of optional VPE native-game tests or authorize other AMJ publisher deployments.
