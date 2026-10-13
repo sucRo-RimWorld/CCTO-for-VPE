@@ -17,9 +17,7 @@
     "VCE_PearTree",
     "VCE_Opuntia",
     "VCE_BearBerryBush",
-    "VCE_BananaTree"
-  ],
-  "exclude": [
+    "VCE_BananaTree",
     "VCE_Peas",
     "VCE_Eggplant",
     "VCE_Cabbage",
@@ -27,6 +25,7 @@
     "VCE_CherryTree",
     "VCE_OrangeTree"
   ],
+  "exclude": [],
   "plants": {
     "VCE_Grass": {
       "growth_min_c": 0,
@@ -111,7 +110,51 @@
       "cold_death_c": -2,
       "cold_dormancy": false,
       "source": "UF/IFAS: growth slows <16°C and freezes at <=0°C, <-2°C kills aboveground; game loses rhizome regrowth, so fixed death approximates plant loss."
+    },
+    "VCE_Peas": {
+      "growth_min_c": 5,
+      "cold_death_c": -4,
+      "cold_dormancy": false,
+      "source": "Cool-season pea, frost tolerant (Penn State and UMN Extension); 5/-4 is an explicit gameplay approximation, not a physiological death threshold. Preserve the VPE rain-speed boost."
+    },
+    "VCE_Eggplant": {
+      "growth_min_c": 5,
+      "cold_death_c": -1,
+      "cold_dormancy": false,
+      "source": "Heat-loving annual and frost sensitive (UGA/UMN Extension); 5/-1 gameplay setting preserves part of VPE's 0-10°C slow-growth ramp at 5-10°C and full 37-60°C heat bonus, but does not reparameterize that hardcoded curve."
+    },
+    "VCE_Cabbage": {
+      "growth_min_c": 0,
+      "cold_death_c": -6,
+      "cold_dormancy": false,
+      "source": "Exactly match CCTO Medieval Overhaul DankPyon_Plant_Cabbages (0/-6) while retaining VPE toxic-fallout survival behavior; UMN Extension recognizes cabbage as frost hardy."
+    },
+    "VCE_Beet": {
+      "growth_min_c": -5,
+      "cold_death_c": -6,
+      "cold_dormancy": false,
+      "source": "VPE hardcodes −5°C as the zero-growth end of its winter temperature factor; setting native minimum −5°C keeps that complete range while −6°C cold death approximates severe frost, consistent with the separate CCTO cabbage −6 limit (not a measured beet survival threshold). No cold dormancy; VPE out-of-season 10% return does not bypass base TickLong growth gate."
+    },
+    "VCE_CherryTree": {
+      "growth_min_c": 5,
+      "cold_death_c": null,
+      "cold_dormancy": true,
+      "source": "Same 5°C growth minimum and nonlethal dormancy convention as CCTO's apple and VPE's other deciduous fruit trees; cherry's VPE winter-blossom graphics override LeaflessNow in winter and remain visually unchanged."
+    },
+    "VCE_OrangeTree": {
+      "growth_min_c": 10,
+      "cold_death_c": -4,
+      "cold_dormancy": false,
+      "source": "Exactly match existing CCTO Medieval Overhaul lemon tree (10/-4) as the nearest CCTO citrus gameplay analogue, not a measured universal orange-tree frost death limit; preserve VPE river growth multiplier."
     }
   },
-  "balance_revision": "v1-2026-10-13-evidence-review"
+  "balance_revision": "v1.1-2026-10-13-six-xml-special-classes",
+  "custom_classes": {
+    "VCE_Peas": "VanillaPlantsExpanded.Plant_RainAffected",
+    "VCE_Eggplant": "VanillaPlantsExpanded.Plant_HighTempAffected",
+    "VCE_Cabbage": "VanillaPlantsExpanded.Plant_StopsGrowingInToxins",
+    "VCE_Beet": "VanillaPlantsExpanded.Plant_WinterResistant",
+    "VCE_CherryTree": "VanillaPlantsExpanded.Plant_WinterBlooming",
+    "VCE_OrangeTree": "VanillaPlantsExpanded.Plant_ChecksRiver"
+  }
 }

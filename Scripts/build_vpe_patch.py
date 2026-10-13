@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate CCTO for VPE production XML only after all 14 values are finalized."""
+"""Generate CCTO for VPE XML for approved 20 core plants (14 standard + 6 custom)."""
 import json
 import sys
 import xml.etree.ElementTree as ET
@@ -13,8 +13,18 @@ def make_patch(data: dict) -> ET.Element:
     include = data["include"]
     exclude = data["exclude"]
     plants = data["plants"]
-    if len(include) != 14 or len(set(include)) != 14 or len(exclude) != 6:
-        raise ValueError("VPE v1 requires exactly 14 ordinary plants / 6 custom exclusions")
+    expected_custom = {
+        "VCE_Peas": "VanillaPlantsExpanded.Plant_RainAffected",
+        "VCE_Eggplant": "VanillaPlantsExpanded.Plant_HighTempAffected",
+        "VCE_Cabbage": "VanillaPlantsExpanded.Plant_StopsGrowingInToxins",
+        "VCE_Beet": "VanillaPlantsExpanded.Plant_WinterResistant",
+        "VCE_CherryTree": "VanillaPlantsExpanded.Plant_WinterBlooming",
+        "VCE_OrangeTree": "VanillaPlantsExpanded.Plant_ChecksRiver",
+    }
+    if (len(include) != 20 or len(set(include)) != 20 or exclude
+            or data.get("custom_classes") != expected_custom
+            or not set(expected_custom).issubset(include)):
+        raise ValueError("VPE core requires 20 plants (14 standard + 6 verified custom) / 0 excluded")
     if set(plants) != set(include) or set(include) & set(exclude):
         raise ValueError("Inventory is inconsistent")
     if data["status"] != "approved":

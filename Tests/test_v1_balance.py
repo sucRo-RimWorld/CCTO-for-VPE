@@ -36,9 +36,12 @@ class V1BalanceTest(unittest.TestCase):
         self.assertEqual(DATA["status"],"approved")
         root=ET.parse(ROOT/"Patches/ColdTolerance.xml").getroot()
         ops=root.findall("./Operation/operations/li")
-        self.assertEqual(len(ops),28)
-        self.assertEqual([x.get("Class") for x in ops].count("PatchOperationConditional"),14)
-        self.assertEqual([x.get("Class") for x in ops].count("PatchOperationAddModExtension"),14)
+        self.assertEqual(len(ops),40)
+        self.assertEqual([x.get("Class") for x in ops].count("PatchOperationConditional"),20)
+        self.assertEqual([x.get("Class") for x in ops].count("PatchOperationAddModExtension"),20)
+        self.assertEqual(len(DATA["include"]),20)
+        self.assertEqual(len(DATA["exclude"]),0)
+        self.assertEqual(len(DATA["custom_classes"]),6)
         for species in DATA["include"]:
             row=DATA["plants"][species]
             base=f'/Defs/ThingDef[defName="{species}"]'
