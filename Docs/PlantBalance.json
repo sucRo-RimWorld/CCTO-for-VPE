@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "pending_balance",
+  "status": "approved",
   "provider": "Vanilla Plants Expanded 1.6",
   "owner": "sucRo-RimWorld/CCTO-for-VPE",
   "include": [
@@ -29,88 +29,89 @@
   ],
   "plants": {
     "VCE_Grass": {
-      "growth_min_c": null,
+      "growth_min_c": 0,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "CCTO generic Grass 0°C cold dormancy, analogous grazing perennial; species unspecified."
     },
     "VCE_TallGrass": {
-      "growth_min_c": null,
+      "growth_min_c": 0,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "CCTO Tall grass 0°C cold dormancy; leaves disappear over winter as VPE has leafless graphic."
     },
     "VCE_Agave": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 5,
+      "cold_death_c": -7,
+      "cold_dormancy": false,
+      "source": "CCTO Vanilla Agave exact 5/-7 balance; genus and cultivars vary in natural hardiness."
     },
     "VCE_Onion": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 5,
+      "cold_death_c": -3,
+      "cold_dormancy": false,
+      "source": "CCTO Medieval Overhaul Onion exact 5/-3 balance; avoids two conflicting Onion profiles."
     },
     "VCE_Pumpkin": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 10,
+      "cold_death_c": -1,
+      "cold_dormancy": false,
+      "source": "CCTO Medieval Overhaul Pumpkin exact 10/-1 and PSU warm-season germination."
     },
     "VCE_Pepper": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 12,
+      "cold_death_c": -1,
+      "cold_dormancy": false,
+      "source": "PSU pepper minimum seed germination 60°F (15.6°C), warmer than tomato 50°F; 12°C gameplay growth cutoff; -1°C frost damage approximation."
     },
     "VCE_Tomato": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 10,
+      "cold_death_c": -1,
+      "cold_dormancy": false,
+      "source": "CCTO Medieval Overhaul Tomato exact 10/-1; PSU seeds more warm-sensitive than onions."
     },
     "VCE_AppleTree": {
-      "growth_min_c": null,
+      "growth_min_c": 5,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "CCTO Medieval Overhaul Apple exact 5°C cold dormancy; apple/pear dormancy response research."
     },
     "VCE_PeachTree": {
-      "growth_min_c": null,
+      "growth_min_c": 5,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "UGA extension: peaches overwinter dormant; frost bud damage is not whole-tree death."
     },
     "VCE_PlumTree": {
-      "growth_min_c": null,
+      "growth_min_c": 5,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "UGA extension: plums behave similarly to peaches in dormancy/bloom damage."
     },
     "VCE_PearTree": {
-      "growth_min_c": null,
+      "growth_min_c": 5,
       "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "cold_dormancy": true,
+      "source": "Apple/pear temperature-driven dormancy research; VPE describes cool-climate pear."
     },
     "VCE_Opuntia": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 8,
+      "cold_death_c": -8,
+      "cold_dormancy": false,
+      "source": "VPE generic desert prickly pear, species unspecified; -8°C is moderate gameplay approximation, NOT an observed Opuntia lethal temperature."
     },
     "VCE_BearBerryBush": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 0,
+      "cold_death_c": -40,
+      "cold_dormancy": false,
+      "source": "UMN identifies northern bearberry Arctostaphylos uva-ursi as hardy broadleaf evergreen; keep leaves, use very low fallback cold death for game balance (not experimentally measured)."
     },
     "VCE_BananaTree": {
-      "growth_min_c": null,
-      "cold_death_c": null,
-      "cold_dormancy": null,
-      "source": "pending species-specific balance decision"
+      "growth_min_c": 15,
+      "cold_death_c": -2,
+      "cold_dormancy": false,
+      "source": "UF/IFAS: growth slows <16°C and freezes at <=0°C, <-2°C kills aboveground; game loses rhizome regrowth, so fixed death approximates plant loss."
     }
-  }
+  },
+  "balance_revision": "v1-2026-10-13-evidence-review"
 }
