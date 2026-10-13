@@ -42,4 +42,4 @@ The Project VE/non-VE implementation-entry comparison and its evidence-hashed de
 ## 6. Prior art and limitations
 See `Docs/Research/PriorArt.md`; the required Project [new-module implementation gate](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/ExistingModAudit.md) still requires its formal validated decision record. Source inspection is not a native test or confirmed cold-tolerance balance.
 
-Owner handoff: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1).
+Source bootstrap and v1 XML implementation: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1), PR #2 / PR #3. Native validation and release acceptance: [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).
