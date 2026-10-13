@@ -5,10 +5,10 @@ This file is for cross-workstream state and handoffs only. Values, behavior and 
 ## VPE-COMMUNITY-VALIDATION-20261013
 
 **Owner:** CCTO for VPE.
-**Status:** V1 XML IMPLEMENTED; STATIC/PARITY CI PASS; **NATIVE GAMEPLAY NOT RUN; USER BUG REPORTS ADOPTED**. Author Workshop release has not been performed.
+**Status:** VPE 1.6 CORE 20 XML IMPLEMENTED; 0.1.0 SOURCE/PACKAGE/APPROVED PREVIEW MERGED VIA [PR #13](https://github.com/sucRo-RimWorld/CCTO-for-VPE/pull/13); MAIN SOURCE/ZIP CI PASS; **NATIVE GAMEPLAY NOT RUN; USER BUG REPORTS ADOPTED**. Author Workshop release has not been performed.
 
 - Author explicitly does not use VPE. For CCTO for VPE **only**, mandatory pre-release native RimWorld testing is waived. After users try the addon, bugs and compatibility issues will be handled through the repository [issue tracker](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues), with a bilingual report template; [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4) owns follow-up. No reports is not native PASS.
-- Still required before release: successful static 20 included (14 ordinary + six custom class) Def, XML/data and nine CCTO Vanilla/MO counterpart parity checks; source/dependency validation; bilingual disclosure of the untested-gameplay state; clean actual subscriber payload and author-controlled Steam upload. No 1.7 VPE compatibility asserted.
+- Source-release preparation completed in merged PR #13: exact reviewed 20-plant and nine-parity tests; VPE source DefName/class comparison at upstream commit `6823417d3aa206880a8cc9fe7c2239f3cb66a78b`; bilingual Workshop + 2game copy; 0.1.0 About/Manifest/Changelog; approved preview and source PNG with hash assertions; six-file subscriber-only ZIP with offline test and CI artifact. Author still must verify the actual installed upload source and publish/inspect the downloaded Steam item. No VPE 1.7 compatibility or native game PASS asserted.
 - CCTO keeps the Vanilla + Medieval Overhaul mappings/framework. No numeric, runtime XML or dependency change is authorized by this reporting-policy change.
 - Shared persistent host remains the project direction for any *optional* later VPE native reproduction, not an unresolved release prerequisite for this addon.
 
