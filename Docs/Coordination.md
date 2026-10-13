@@ -20,3 +20,10 @@ This file is for cross-workstream state and handoffs only. Values, behavior and 
 - Preserve existing 14+6 base VPE v1 data and seven current CCTO Vanilla/MO counterparts. No new temperature XML, new package dependencies or native tests in this decision.
 - Four detected modules: More Plants, Mushrooms, Succulents, Flowers (source revisions recorded in `Docs/AddonInventory.json`); confirm exact provider identity and custom/ordinary classes before each conditional patch. CCTO base is **not** the owner of VPE family addon definitions.
 - Community bug reports/optional native reproduction remain with issue #4; do not treat VPE game tests as a publication prerequisite. Design/source-of-truth: `Docs/Design.md §8`, `Docs/AddonCompatibility.md`.
+
+## VPE-SIX-CUSTOM-CLASS-SOURCE-AUDIT-20261013
+
+**Owner:** CCTO for VPE original VPE v1 plant scope.
+**Status:** SOURCE INSPECTION COMPLETE — **6/6 native growth-minimum + CCTO cold-death extension XML-ADDRESSABLE**, V1 PRODUCTION EXCLUSION AND ALL SIX NUMERIC DECISIONS STILL UNCHANGED.
+
+Verified VPE 1.6 custom class methods, RimWorld 1.6 Plant.TickLong and PlantUtility.GrowthSeasonNow, and CCTO's base Plant Harmony hooks. Eggplant/Beet retain hardcoded growth multipliers; Beet's documented 10% out-of-season growth-rate return is blocked by base TickLong actual growth gating; Cherry winter blossom graphics override leafless priority. Do not silently alter VPE special behavior. Exact source evidence and limitations in `Docs/Research/VpeCustomPlantClassAudit.md`, future XML implementation in [issue #10](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/10). No actual loaded-game testing or steam distribution performed.
