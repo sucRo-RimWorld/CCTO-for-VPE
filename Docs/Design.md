@@ -1,0 +1,42 @@
+# CCTO for VPE — owner design (2026-10-13)
+
+## 1. Purpose and responsibility
+Create an optional separate XML-only compatibility addon that maps **Vanilla Plants Expanded (VPE) 1.6** plants to the existing **Crop Cold Tolerance Overhaul (CCTO)** per-plant minimum growth temperature, explicit cold-death threshold and low-temperature dormancy behavior.
+
+PackageId: `sucro.cctoforvpe` (owner repository identity; not yet released). Dependency packageIds: `sucro.cropcoldtoleranceoverhaul` (CCTO), `VanillaExpanded.VPlantsE` (VPE). CCTO itself depends on Harmony and VPE on VE Framework; do not repackage these dependencies. Both providers load before this addon.
+
+RimWorld 1.6 is the inspected supported version. VPE's inspected About.xml does not list 1.7. CCTO's own 1.7 support is insufficient to claim VPE 1.7 compatibility.
+
+## 2. Fixed v1 scope
+The **14 ordinary VPE PlantDefs** are `VCE_Grass`, `VCE_TallGrass`, `VCE_Agave`, `VCE_Onion`, `VCE_Pumpkin`, `VCE_Pepper`, `VCE_Tomato`, `VCE_AppleTree`, `VCE_PeachTree`, `VCE_PlumTree`, `VCE_PearTree`, `VCE_Opuntia`, `VCE_BearBerryBush`, `VCE_BananaTree`.
+
+The **six VPE custom-class definitions excluded from v1** are `VCE_Peas` (`Plant_RainAffected`), `VCE_Eggplant` (`Plant_HighTempAffected`), `VCE_Cabbage` (`Plant_StopsGrowingInToxins`), `VCE_Beet` (`Plant_WinterResistant`), `VCE_CherryTree` (`Plant_WinterBlooming`), `VCE_OrangeTree` (`Plant_ChecksRiver`). Not all classes are necessarily incompatible with XML; the conservative v1 exclusion is a scope decision. Evaluate their real methods individually later.
+
+The 14 + six coverage comes from upstream VPE 1.6 `Plants_Cultivated_Farm.xml` and `Plants_Cultivated_Trees.xml`, not a claim about unrelated other VPE add-on packs or later versions. Every listed VPE 1.6 definition has no explicit `plant/minGrowthTemperature` in its own XML; its loaded default can be inherited from parent Defs, so inspect the *loaded* value rather than assuming the source has a literal zero.
+
+## 3. XML behavior
+When complete, the addon uses a single `Patches/ColdTolerance.xml`. For each of the 14 plants:
+- Set native `plant/minGrowthTemperature` through a safe existing-node replace or add when absent.
+- Add exactly one `CropColdToleranceOverhaul.ColdToleranceExtension` with either `coldDeathTemperature` or `coldDormancy=true`, optionally both when independently justified.
+- No changes to `thingClass`, yield, harvesting, growth days, fertility, recipes, graphics, biome generation or inventory.
+- No bundled CCTO DLL, Harmony patches or fork of VPE code. Avoid duplicate extension if a third-party mod already supplies one; inspect actual loaded-mod compatibility before claiming the combined profile is safe.
+
+CCTO keeps its 49 Vanilla and 29 MO specific PlantDefs and `MedievalOverhaul_ColdTolerance.xml`. **No MO addon or data separation**.
+
+## 4. Numeric state and implementation gate
+`Docs/PlantBalance.json` is the owner-controlled inventory. All numeric values are initially `null` / `pending`: that is intentional, **not zero degrees or permission for a generic copied tolerance**. Species-specific temperatures and seasonal/wild-survival behavior need evidence and review. A temporary research candidate is not a published value.
+
+The development-only `Scripts/build_vpe_patch.py` must refuse to generate runtime XML while any species remains incomplete. After the Project VE **and non-VE** prior-art comparison and required decision record, and after the species values are fixed, populate all 14 entries, generate the patch, review diff and run static loaded-Def/native tests before release. There is **no live XML patch today**.
+
+## 5. Required test premises
+1. Metadata: exact CCTO + VPE dependency IDs; VPE 1.6 target; addon loads after both; no direct MO dependency.
+2. VPE 1.6 provider source: 14 ordinary DefNames, all exist exactly once and use no explicit custom `thingClass`. Six excluded custom DefNames exist and remain untouched.
+3. Each approved species: correct exact XML numeric value, native growth-minimum field, one CCTO extension with correct death/dormancy semantics; never alter VPE growth/harvest/fertility/graphics.
+4. CCTO-only, VPE-only, addon+both, CCTO+MO+VPE+addon profiles; clean missing-dependency handling; no duplicate extension/XPath failures.
+5. Actual minimum-growth and freeze boundary checks, perennial leafless/dormant recovery, perennial no-death profiles, cold-death profiles, existing save load/re-save/add/remove; complete isolated RimWorld log with ERROR 0.
+6. Static/package/source checks, no C# or runtime DLL, version and Workshop publication separately. Automated native execution uses the shared persistent Linux host only when that separate infrastructure is available.
+
+## 6. Prior art and limitations
+See `Docs/Research/PriorArt.md`; the required Project [new-module implementation gate](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/ExistingModAudit.md) still requires its formal validated decision record. Source inspection is not a native test or confirmed cold-tolerance balance.
+
+Owner handoff: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1).
