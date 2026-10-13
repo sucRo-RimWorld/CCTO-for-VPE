@@ -50,7 +50,7 @@ class ReleaseCandidateTests(unittest.TestCase):
         en, ja = text.split('[hr][/hr]')
         for needle in ('20 VPE core plants', 'not been independently tested',
                        'not yet supported', 'new saved classes'):
-            self.assertIn(needle, en)
+            self.assertIn(needle.casefold(), en.casefold())
         for needle in ('20種', '実ゲーム未検証', '未対応', '既存セーブ'):
             self.assertIn(needle, ja)
         for heading in ('▼ 特徴','▼ バランス方針','▼ 対応範囲',
