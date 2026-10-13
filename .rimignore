@@ -1,15 +1,19 @@
-# Development-only files are excluded from the subscriber payload.
+# YADA patterns are inherited case-insensitive basename matches, not gitignore.
 AGENTS.md
 README.md
-Docs/
-Tests/
-Scripts/
-.github/
-.git/
+Docs
+Tests
+Scripts
+.github
+.git
 .gitignore
+.gitattributes
+.rimignore
+Art
+Dist
+TestResults
+__pycache__
 *.pyc
-__pycache__/
-Art/
-
-# Only used for optional CCTO source checkout during tests.
-.ccto-base/
+*.pdb
+*.zip
+.ccto-base

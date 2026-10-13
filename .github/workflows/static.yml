@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Checkout current CCTO main for seven-plant parity
+      - name: Checkout current CCTO main for nine-plant parity
         uses: actions/checkout@v4
         with:
           repository: sucRo-RimWorld/RimWorld-Crop-Cold-Tolerance-Overhaul
@@ -24,8 +24,17 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             Patches
-      - name: Verify metadata, 14+6 scope and seven live-source CCTO parity
+      - name: Verify metadata, 20-plant scope and nine live-source CCTO parity
         env:
           CCTO_SOURCE_ROOT: .ccto-base
           CCTO_PARITY_REQUIRED: '1'
         run: python -m unittest discover -s Tests -p 'test_*.py' -v
+      - name: Build audited Workshop subscriber ZIP
+        run: python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
+      - name: Retain candidate for author-side Steam publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: CCTO-for-VPE-0.1.0-subscriber-candidate
+          path: Dist/CCTO-for-VPE-0.1.0.zip
+          if-no-files-found: error
+          retention-days: 7

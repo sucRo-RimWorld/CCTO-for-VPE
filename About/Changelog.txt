@@ -1,0 +1,9 @@
+# CCTO for VPE
+# Add Changenote reads the current version heading from About/Manifest.xml.
+0.1.0 - Initial VPE 1.6 cold-tolerance compatibility / 初回VPE 1.6耐寒性対応
+- Added growth temperature and cold-death/dormancy rules for 20 VPE core plants.
+- Preserved VPE class-specific growth features, artwork and crop properties.
+- Runtime gameplay remains unverified; reports from VPE players are welcome.
+- VPE基本セット20種に最低生育温度と枯死温度・低温休眠を追加。
+- 独自の成長処理、画像、作物性能はそのまま維持。
+- 実ゲーム未検証。利用者からの報告をもとに修正する。

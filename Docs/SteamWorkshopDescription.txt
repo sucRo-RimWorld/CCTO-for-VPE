@@ -1,0 +1,61 @@
+This XML compatibility addon applies Crop Cold Tolerance Overhaul (CCTO) temperature rules to plants from Vanilla Plants Expanded (VPE). It does not add new crops.
+
+[h2]Features[/h2]
+[list]
+[*]Individual minimum growth temperatures for all 20 VPE core plants
+[*]Plant-specific fixed cold-death temperatures or nonlethal cold dormancy
+[*]Preserves VPE's growth, blooming, river bonuses, crop yields, recipes and artwork
+[/list]
+
+[h2]Balance and support[/h2]
+Temperatures are gameplay estimates informed by plant cold-hardiness differences, not universal measured plant-death limits. Yield, growing days, fertility and recipes are unchanged.
+
+[b]Supported:[/b] All 20 plants in the VPE 1.6 basic set, including six VPE special-class plants.
+[b]Not yet supported:[/b] Separate VPE add-on packs such as More Plants, Mushrooms, Succulents and Flowers.
+
+[h2]Requirements[/h2]
+[list]
+[*]RimWorld 1.6
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3812412548]Crop Cold Tolerance Overhaul[/url]
+[*][url=https://github.com/Vanilla-Expanded/VanillaPlantsExpanded]Vanilla Plants Expanded[/url]
+[/list]
+This addon loads after both required mods. Harmony and Vanilla Expanded Framework are dependencies of those mods.
+
+[h2]Save compatibility[/h2]
+The addon patches existing plant definitions using XML and adds no new saved classes. [b]Adding or removing it mid-save has not been tested in a running game.[/b] Existing living plants are expected to receive the new temperature settings after loading. Removing it does not revive plants already killed by cold.
+
+[h2]Bug reports[/h2]
+[b]In-game behavior has not been independently tested.[/b] Reports from people playing with VPE will guide corrections. Include the affected plant, versions, reproduction steps and game log when practical.
+[url=https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose]GitHub bug reports / 不具合報告[/url]
+
+[hr][/hr]
+
+CCTOの耐寒性設定をVanilla Plants Expanded（VPE）の基本セットに適用するXML互換Mod。新しい植物は追加しない。
+
+[h2]特徴[/h2]
+[list]
+[*]VPE基本セット20種に最低生育温度を個別設定
+[*]植物ごとに固定枯死温度または低温休眠を設定
+[*]VPE独自の成長・開花・河川ボーナス、収穫量、レシピ、画像は維持
+[/list]
+
+[h2]バランスと対応範囲[/h2]
+耐寒性の違いを参考にしたゲーム用の温度設定であり、一律の実測枯死温度ではない。収穫量・成長日数・肥沃度・レシピは変更しない。
+
+[b]対応済み:[/b] VPE 1.6基本セット20種（独自クラス6種を含む）。
+[b]未対応:[/b] More Plants・Mushrooms・Succulents・Flowersなどの独立したVPE追加パック。
+
+[h2]必須Mod[/h2]
+[list]
+[*]RimWorld 1.6
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3812412548]Crop Cold Tolerance Overhaul[/url]
+[*][url=https://github.com/Vanilla-Expanded/VanillaPlantsExpanded]Vanilla Plants Expanded[/url]
+[/list]
+本Modは上記2つのModより後に読み込む。HarmonyとVanilla Expanded Frameworkは各必須Modの依存関係に従う。
+
+[h2]セーブ互換性[/h2]
+既存の植物DefをXMLで変更し、保存用の新しいクラスは追加しない。ただし[b]既存セーブへの追加・削除は実ゲーム未検証[/b]。既存の生きた植物にも読み込み時に設定が適用される想定。すでに寒さで枯死した植物は削除しても復元されない。
+
+[h2]不具合報告[/h2]
+[b]実ゲームでの動作は未検証。[/b] VPE利用者の報告に基づき修正する。対象植物・Mod構成・再現手順・ログなどを可能な範囲で記載してほしい。
+[url=https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose]GitHub Issues / 不具合報告[/url]
