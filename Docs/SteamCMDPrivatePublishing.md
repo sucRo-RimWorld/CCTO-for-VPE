@@ -20,6 +20,12 @@
 4. Set these **local service environment variables**, outside repository or GitHub secrets: `CCTO_STEAMCMD_BIN` (absolute executable), `CCTO_STEAM_ACCOUNT` (Steam login name), `CCTO_STEAM_STATE` (persistent absolute JSON file under a private 0700 folder, *not* within GitHub checkout, e.g. an isolated `$HOME/.private/ccto-for-vpe-state.json`). Never set them via `workflow_dispatch` inputs.
 5. In GitHub Settings → Environments, configure `steam-workshop-private` protection with an appropriate required reviewer where available. Restrict workflow runs to trusted repository administrators; ensure `contents:read` token and no pull-request entry. Test the label, SteamCMD executable and credentials locally before live dispatch.
 
+## Operational troubleshooting and artifact digest contract
+
+- On the dedicated WSL publisher, GitHub checkout/download can intermittently fail with `Could not resolve host: github.com` even after a transient successful `getent`. Check `getent ahostsv4 github.com` and `curl -4 -fIL --max-time 20 https://github.com` from the **publisher Linux account**; restore WSL DNS/network before retrying. GitHub-hosted preflight PASS does not prove the local publisher's DNS health. Do not bypass certificate verification, add pinned GitHub IP addresses, or store GitHub tokens as a DNS workaround.
+- The preflight stores `Dist/sha256.txt` with a **filename relative to `Dist/`**. The publisher downloads the artifact into `Dist/`, changes into that directory, and runs `sha256sum -c sha256.txt` before SteamCMD. The publisher also independently compares ZIP bytes to the current approved main checkout. Never weaken either check to work around missing files.
+- [Failed first upload attempt #38422572626](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38422572626): preflight PASS, intermittent publisher DNS errors during checkout, then a deterministic `Dist/Dist/` checksum pathname failure. The SteamCMD upload step was **skipped**, so this run neither created nor updated a Steam item. Correct the checksum path and complete PR/main checks before a fresh, explicitly authorized `upload_private` dispatch. Keep the initial-create state gate; do not assume an item ID from a failed GitHub job.
+
 ## Dispatch and verification
 
 Use **Actions → CCTO for VPE SteamCMD private upload → Run workflow**, choose `main`, copy the exact current `main` SHA into `exact_main_sha`.
