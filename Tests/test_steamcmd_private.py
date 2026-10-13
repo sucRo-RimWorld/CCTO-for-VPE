@@ -68,7 +68,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
             archive.write_bytes(b'workshop-zip-test-fixture')
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
             (dist / 'sha256.txt').write_text(
-                f'{digest}  {archive.name}\\n', encoding='utf-8')
+                f'{digest}  {archive.name}' + chr(10), encoding='utf-8')
             result = subprocess.run(
                 ['sha256sum', '-c', 'sha256.txt'], cwd=dist,
                 capture_output=True, text=True, check=False)
