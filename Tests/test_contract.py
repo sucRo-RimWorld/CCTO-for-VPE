@@ -68,6 +68,15 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(res.returncode, 2, res.stdout + res.stderr)
         self.assertFalse((ROOT / "Patches" / "ColdTolerance.xml").exists())
 
+    def test_community_bug_report_disclosure(self):
+        description = ET.parse(ROOT / "About" / "About.xml").getroot().findtext("description")
+        self.assertIn("Not independently tested in a running game", description)
+        self.assertIn("実ゲーム未検証", description)
+        self.assertIn("github.com/sucRo-RimWorld/CCTO-for-VPE/issues", description)
+        template = (ROOT / ".github" / "ISSUE_TEMPLATE" / "bug_report.md").read_text(encoding="utf-8")
+        for required in ("RimWorld", "Vanilla Plants Expanded", "CCTO", "温度", "Reproduction", "Log"):
+            self.assertIn(required, template)
+
     def test_no_csharp_or_bundled_assemblies(self):
         forbidden = [x for x in ROOT.rglob("*") if x.is_file() and x.suffix.lower() in
                      {".dll", ".cs", ".csproj"} and ".git" not in x.parts and ".ccto-base" not in x.parts]
