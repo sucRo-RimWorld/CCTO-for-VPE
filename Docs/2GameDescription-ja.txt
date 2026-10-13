@@ -1,0 +1,28 @@
+CCTOの耐寒性設定を、Vanilla Plants Expanded（VPE）の基本セット20種に適用するXML互換Mod。植物を新たに追加するものではない。
+
+▼ 特徴
+・植物ごとに最低生育温度と固定枯死温度、または低温休眠を設定。
+・VPE固有の成長倍率、開花、毒性耐性、河川ボーナスを維持。
+
+▼ バランス方針
+・現実の耐寒性の違いを参考にしたゲーム用の設定。
+・収穫量、成長日数、肥沃度、レシピ、画像は変更しない。
+
+▼ 対応範囲
+・VPE 1.6の基本セット20種（独自クラス6種を含む）。
+・More Plants、Mushrooms、Succulents、Flowersなどの追加パックは未対応。
+
+▼ 対応・互換性
+・RimWorld 1.6専用。
+・[Crop Cold Tolerance Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3812412548)と[Vanilla Plants Expanded](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded)が必須。
+・他の植物温度変更Modとの互換性は未検証。
+
+▼ セーブ互換性
+・既存植物の設定をXMLで変更。保存用の新規クラスは追加しない。
+・既存セーブへの追加・削除は実ゲーム未検証。読み込み後の既存植物にも設定が適用される想定。
+・枯死済み植物は本Modを削除しても復元されない。
+
+▼ 今後の予定
+・VPEの追加植物パックへの対応を検討。
+・作者による実ゲーム検証は行わず、利用者からの報告に基づいて修正。
+・報告先：https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues
