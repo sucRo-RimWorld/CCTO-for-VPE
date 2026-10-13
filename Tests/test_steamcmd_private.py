@@ -46,6 +46,41 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('PRIVATE_ONLY', workflow)
         self.assertNotIn('upload_public', workflow)
 
+    def test_workflow_zip_digest_is_relative_to_artifact_root(self):
+        """The uploaded sha256.txt must verify after download into Dist/."""
+        import hashlib
+        import subprocess
+
+        workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
+        producer = workflow.split('      - name: Build exactly six subscriber files', 1)[1].split(
+            '      - name: Retain candidate for publisher job and auditing', 1)[0]
+        consumer = workflow.split('      - name: Verify candidate artifact digest and reviewed source before invoking SteamCMD', 1)[1].split(
+            '      - name: SteamCMD private-only create/update', 1)[0]
+        self.assertIn('cd Dist && sha256sum CCTO-for-VPE-0.1.0.zip > sha256.txt', producer)
+        self.assertIn('cd Dist', consumer)
+        self.assertIn('sha256sum -c sha256.txt', consumer)
+        self.assertNotIn('sha256sum Dist/CCTO-for-VPE-0.1.0.zip > Dist/sha256.txt', workflow)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            dist = Path(tmp) / 'Dist'
+            dist.mkdir()
+            archive = dist / 'CCTO-for-VPE-0.1.0.zip'
+            archive.write_bytes(b'workshop-zip-test-fixture')
+            digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+            (dist / 'sha256.txt').write_text(
+                f'{digest}  {archive.name}' + chr(10), encoding='utf-8')
+            result = subprocess.run(
+                ['sha256sum', '-c', 'sha256.txt'], cwd=dist,
+                capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('CCTO-for-VPE-0.1.0.zip: OK', result.stdout)
+            archive.write_bytes(b'tampered-zip')
+            bad = subprocess.run(
+                ['sha256sum', '-c', 'sha256.txt'], cwd=dist,
+                capture_output=True, text=True, check=False)
+            self.assertNotEqual(bad.returncode, 0)
+            self.assertIn('FAILED', bad.stdout)
+
     def test_no_unapproved_first_creation_or_duplicate(self):
         with tempfile.TemporaryDirectory() as tmp:
             state = Path(tmp) / 'private-item.json'
