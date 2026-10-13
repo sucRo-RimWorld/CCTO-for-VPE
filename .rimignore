@@ -1,0 +1,12 @@
+# Development-only files are excluded from the subscriber payload.
+AGENTS.md
+README.md
+Docs/
+Tests/
+Scripts/
+.github/
+.git/
+.gitignore
+*.pyc
+__pycache__/
+Art/

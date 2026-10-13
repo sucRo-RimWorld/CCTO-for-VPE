@@ -1,0 +1,18 @@
+name: CCTO for VPE offline contract
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: vpe-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify metadata and 14 plus 6 v1 scope without RimWorld
+        run: python -m unittest discover -s Tests -p 'test_*.py' -v

@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "status": "pending_balance",
+  "provider": "Vanilla Plants Expanded 1.6",
+  "owner": "sucRo-RimWorld/CCTO-for-VPE",
+  "include": [
+    "VCE_Grass",
+    "VCE_TallGrass",
+    "VCE_Agave",
+    "VCE_Onion",
+    "VCE_Pumpkin",
+    "VCE_Pepper",
+    "VCE_Tomato",
+    "VCE_AppleTree",
+    "VCE_PeachTree",
+    "VCE_PlumTree",
+    "VCE_PearTree",
+    "VCE_Opuntia",
+    "VCE_BearBerryBush",
+    "VCE_BananaTree"
+  ],
+  "exclude": [
+    "VCE_Peas",
+    "VCE_Eggplant",
+    "VCE_Cabbage",
+    "VCE_Beet",
+    "VCE_CherryTree",
+    "VCE_OrangeTree"
+  ],
+  "plants": {
+    "VCE_Grass": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_TallGrass": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Agave": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Onion": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Pumpkin": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Pepper": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Tomato": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_AppleTree": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_PeachTree": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_PlumTree": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_PearTree": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_Opuntia": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_BearBerryBush": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    },
+    "VCE_BananaTree": {
+      "growth_min_c": null,
+      "cold_death_c": null,
+      "cold_dormancy": null,
+      "source": "pending species-specific balance decision"
+    }
+  }
+}
