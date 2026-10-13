@@ -29,20 +29,31 @@ The v1 model has **source-reviewed initial engineering values**: `Docs/PlantBala
 
 The Project VE/non-VE implementation-entry comparison and its evidence-hashed decision are in `Docs/Research/PriorArt.md` and `Docs/Research/ImplementationDecision.json`. The original VPE 1.6 14 ordinary / six custom-class exclusion remains unchanged. `Scripts/build_vpe_patch.py` is the canonical generator; tests verify the generated XML is semantically current, contains exactly one intended cold extension per ordinary plant, and refuses invalid or unapproved inputs.
 
-**Implementation source is not release-ready runtime evidence.** Native loaded-Def counts, XPath resolution, conflict with third-party temperature patches, wild-biome survival, perennial graphics and save compatibility are still unverified pending the persistent test host.
+**Runtime evidence remains absent.** The author does not use VPE, so mandatory pre-publication native gameplay testing is waived specifically for CCTO for VPE. Instead, users who actually play with VPE provide post-distribution bug reports. Absence of reports is **not** proof of functioning loaded Defs, XPath resolution, save compatibility, graphics, or survival; static CI alone never establishes native PASS.
 
-## 5. Required test premises
-1. Metadata: exact CCTO + VPE dependency IDs; VPE 1.6 target; addon loads after both; no direct MO dependency.
-2. VPE 1.6 provider source: 14 ordinary DefNames, all exist exactly once and use no explicit custom `thingClass`. Six excluded custom DefNames exist and remain untouched.
-3. Each approved species: correct exact XML numeric value, native growth-minimum field, one CCTO extension with correct death/dormancy semantics; never alter VPE growth/harvest/fertility/graphics.
-4. CCTO-only, VPE-only, addon+both, CCTO+MO+VPE+addon profiles; clean missing-dependency handling; no duplicate extension/XPath failures.
-5. Actual minimum-growth and freeze boundary checks, perennial leafless/dormant recovery, perennial no-death profiles, cold-death profiles, existing save load/re-save/add/remove; complete isolated RimWorld log with ERROR 0.
-6. Static/package/source checks, no C# or runtime DLL, version and Workshop publication separately. Automated native execution uses the shared persistent Linux host only when that separate infrastructure is available.
+## 5. Validation and user-reporting policy (2026-10-13)
+
+**Author decision:** Since the author does not play with Vanilla Plants Expanded (VPE), do **not** block the initial CCTO for VPE distribution on an author-operated in-game test. Use static/source validation before distribution, and investigate/reproduce problems from actual VPE users' bug reports afterward. This exception applies only to this optional addon, not to CCTO's established Vanilla/MO tests or other AMJ modules.
+
+### Before any Workshop distribution — mandatory checks
+1. Exact packageIds: addon `sucro.cctoforvpe`, CCTO `sucro.cropcoldtoleranceoverhaul`, VPE `VanillaExpanded.VPlantsE`. RimWorld 1.6 only until VPE 1.7 is separately verified.
+2. Exact 14 included ordinary VPE 1.6 DefNames, six custom-class exclusions; matching source XML structure, one extension per target and expected native growth-minimum/cold-death/dormancy values. Do not change VPE class, yield, harvest, fertility, graphics or recipes.
+3. All repository CI on the **exact release source** succeeds, including canonical balance/XML equality, evidence hashes and equality of the seven VPE counterparts with *current CCTO main* values. Preserve lack of native validation in the released English/Japanese description.
+4. Inspect the final **subscriber** package (dependencies/identity/runtime XML present; no development files, sources, extra DLL or copied VPE/CCTO assets). Workshop uploading, permissions and actual subscriber download verification remain separate from GitHub CI.
+
+### Community-based post-distribution validation
+- Publish a visible bug-report route to [GitHub Issues](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues), with a bilingual [report template](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose). Workshop comments may also identify issues; capture actionable follow-up in the owning issue tracker without asking the author to relay reports between agents.
+- For a useful report, request RimWorld/VPE/VEF/CCTO/addon versions, game error log and Mod list or load order where practical, affected plant, expected/actual cold/dormancy behavior, steps/temperature/season, and any possible conflicting plant temperature patches. Do **not** require users to publish private saves, account details, or personal information.
+- Triage, reproduce deterministically where possible (XML/source investigation first; shared native host only if actually available and justified), fix via a scoped PR, run affected static gates, then document fix/version and ask the reporter to confirm if practical. Do not mark a bug fixed based solely on a speculative XML change or absence of new reports.
+- The decision to accept user-reported problems does **not** imply that unreported bugs are absent. Log native/load/save/visual evidence as **NOT RUN / UNVERIFIED** until independently observed. Release notes must not claim actual RimWorld runtime PASS.
+
+### Optional diagnostic scenarios (not a release gate)
+If a report requires real-game reproduction, investigate VPE/VEF/Harmony/CCTO provider loading, patch XPath failures, 14 included and six excluded Defs, cold-boundary changes, grass/fruit-tree dormancy and recovery, winter graphics, wild-plant die-off, third-party duplicate extensions, and save add/remove. An actual native test, if performed, must capture isolated complete ERROR logs and provider identity; an incomplete run may never be called PASS.
 
 ## 6. Prior art and limitations
 See `Docs/Research/PriorArt.md`; the required Project [new-module implementation gate](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/ExistingModAudit.md) still requires its formal validated decision record. Source inspection is not a native test or confirmed cold-tolerance balance.
 
-Source bootstrap and v1 XML implementation: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1), PR #2 / PR #3. Native validation and release acceptance: [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).
+Source bootstrap and v1 XML implementation: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1), PR #2 / PR #3. Post-distribution user bug reports and optional reproduction: [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).
 
 ## 7. CCTO/VPE common-plant equality contract
 
