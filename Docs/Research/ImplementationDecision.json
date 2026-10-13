@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "feature": "CCTO for VPE v1 separate XML compatibility using existing CCTO cold API",
+  "owner": "sucRo-RimWorld/CCTO-for-VPE",
+  "scope": "VPE 1.6 ordinary ThingDefs (14); exclude six custom classes; CCTO retains Vanilla/MO",
+  "status": "ready",
+  "search": {
+    "date": "2026-10-13",
+    "queries": [
+      "RimWorld Vanilla Plants Expanded CCTO patch plant cold temperature XML",
+      "RimWorld per plant death dormancy mods Expandable Plants",
+      "RimWorld Night Crops cold resistance"
+    ],
+    "ecosystems": [
+      "vanilla_mo",
+      "amj",
+      "ve",
+      "non_ve"
+    ],
+    "limitations": "Compared VPE 1.6 real Def sources and CCTO owner XML/design; non-VE Expandable Plants source metadata and feature descriptions and public Night Crops description, not full loaded code. No exhaustive global Workshop scan, live VPE 1.7 check, combined mod list or numeric species field experiments. This does not claim compatibility with every third-party cold patch."
+  },
+  "evidence": [
+    {
+      "id": "prior_art",
+      "path": "Docs/Research/PriorArt.md",
+      "sha256": "37cc9ff80b049a795fc455852af240a04be6fd7cea1ab5ed0df0a37ede7c2235"
+    },
+    {
+      "id": "temperature",
+      "path": "Docs/Research/TemperatureEvidence.md",
+      "sha256": "10631412b26cd0ec4cd925fa55196de618280826a46a448a2284549bb51e8e0d"
+    }
+  ],
+  "candidates": [
+    {
+      "name": "RimWorld native fields and existing CCTO Vanilla/MO framework",
+      "ecosystem": "vanilla_mo",
+      "version": "RimWorld 1.6; CCTO main 2026-10-13",
+      "evidence": [
+        "prior_art",
+        "temperature"
+      ],
+      "comparison": {
+        "function": "Native minGrowthTemperature and already implemented CCTO extension, but no VPE-only values",
+        "historical_fit": "Culture-neutral plant cold rules, no Japan-specific presentation",
+        "dependencies": "Reuse existing CCTO and Harmony, no new runtime code",
+        "retention": "Existing CCTO Vanilla and MO 49+29 coverage remains unchanged",
+        "progression_balance": "Species-specific thresholds affect seasons only",
+        "reuse": "Use CCTO XML cold API directly",
+        "maintenance_license": "Reuse API, no source/assembly redistribution"
+      },
+      "outcome": "use_as_is"
+    },
+    {
+      "name": "AMJ project-owned plant temperature XML",
+      "ecosystem": "amj",
+      "version": "Owner repository rules 2026-10-13",
+      "evidence": [
+        "prior_art"
+      ],
+      "comparison": {
+        "function": "Owns AMJ plant species, not VPE ThingDefs",
+        "historical_fit": "AMJ chronology and naming are separate from VPE optional compatibility",
+        "dependencies": "Do not add AMJ runtime dependency",
+        "retention": "No AMJ feature deleted or replaced",
+        "progression_balance": "No AMJ crop progression affected",
+        "reuse": "Follow owner-per-plant framework-consumer pattern",
+        "maintenance_license": "No AMJ assets copied"
+      },
+      "outcome": "not_applicable"
+    },
+    {
+      "name": "Vanilla Plants Expanded",
+      "ecosystem": "ve",
+      "version": "VPE 1.6 farm and tree XML main at 2026-10-13",
+      "evidence": [
+        "prior_art",
+        "temperature"
+      ],
+      "comparison": {
+        "function": "14 ordinary + six custom VPE plant classes; not itself CCTO extension data",
+        "historical_fit": "Keep original VPE content unchanged",
+        "dependencies": "Already required as provider; VEF is its dependency",
+        "retention": "Retain every VPE plant and recipe",
+        "progression_balance": "Only targeted cold/growth minima modified, no agriculture progression change",
+        "reuse": "Patch original VPE DefNames with CCTO API",
+        "maintenance_license": "No VPE code/graphics copied"
+      },
+      "outcome": "optional_compatibility"
+    },
+    {
+      "name": "Expandable Plants (Continued)",
+      "ecosystem": "non_ve",
+      "version": "1.6 About.xml source inspected 2026-10-13",
+      "evidence": [
+        "prior_art"
+      ],
+      "comparison": {
+        "function": "Generic XML-exposure for leafless/growth temperature, not dedicated CCTO VPE per-species mapping",
+        "historical_fit": "Culture neutral, but unrelated to region-specific AMJ policy",
+        "dependencies": "Adds Harmony-based alternate framework not needed for CCTO API",
+        "retention": "Keep existing VPE intact without requiring a second framework",
+        "progression_balance": "May change broader growth temperature and hot-death mechanics",
+        "reuse": "Prior-art only; reuse CCTO own extension",
+        "maintenance_license": "Source metadata/README inspected; no code reuse"
+      },
+      "outcome": "prior_art_only"
+    },
+    {
+      "name": "Night Crops cold resistance",
+      "ecosystem": "non_ve",
+      "version": "Nexus 1.0.3 February 2026 public description",
+      "evidence": [
+        "prior_art"
+      ],
+      "comparison": {
+        "function": "Global optional cold dormancy/death behavior with light-growth changes; does not supply explicit 14 VPE CCTO mappings",
+        "historical_fit": "Culture neutral; beyond the requested compatibility data",
+        "dependencies": "Separate runtime behavior and additional configured mechanics",
+        "retention": "No replacement of VPE content required",
+        "progression_balance": "Broader night growth/crop effects than targeted per-species XML",
+        "reuse": "Prior art only; no third-party new runtime dependency",
+        "maintenance_license": "Description inspected, source code/coexistence unverified"
+      },
+      "outcome": "prior_art_only"
+    }
+  ],
+  "decision": {
+    "kind": "optional_compatibility",
+    "rationale": "Vanilla Plants Expanded supplies the exact 14 plants but no inspected CCTO per-species mapping, and the existing CCTO framework already solves the cold-death/dormancy behavior. An opt-in VPE-only XML consumer fills this narrow missing data without modifying core CCTO, rewriting plant classes or requiring another runtime framework; MO remains integrated.",
+    "specification": "Docs/Design.md",
+    "independent_gap": ""
+  },
+  "unresolved": []
+}

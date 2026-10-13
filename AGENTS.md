@@ -9,7 +9,7 @@
 - This repo owns VPE-only cold-tolerance values, Def mappings, optional compatibility XML, packaging, its own documentation and tests. CCTO retains its C# framework and **all Vanilla/MO data**. MO separation is cancelled.
 - Version 1: the 14 VPE 1.6 plants explicitly listed in `Docs/PlantBalance.json` with no custom `thingClass`. Six custom-class VPE plants are excluded pending individual investigation. Do not silently expand the set.
 - Do not change VPE's plant classes, yield, fertility, harvest, recipes, graphics or growth days. Do not bundle other mods' assets or assemblies.
-- `Docs/PlantBalance.json` is an unfinished data proposal, **not approved numeric balance**. Do not assign arbitrary values or create production `Patches/ColdTolerance.xml` until all 14 entries have reviewed values and the Project [Existing-Mod Audit](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/ExistingModAudit.md) gate is complete.
+- `Docs/PlantBalance.json` is the reviewed implementation balance source; [TemperatureEvidence](Docs/Research/TemperatureEvidence.md) documents the botany-to-gameplay abstraction and [ImplementationDecision](Docs/Research/ImplementationDecision.json) owns the hashed VE/non-VE decision record. Never silently tune compiled XML instead of the balance source. All changes require source evidence, regeneration and static checks; native-loaded behavior and gameplay acceptance remain independent release gates.
 - Runtime RimWorld testing uses the shared persistent-host route when available; do not recreate chat-local game installs. Static validation alone never proves loaded-game behavior.
 
 ## Integration and reports

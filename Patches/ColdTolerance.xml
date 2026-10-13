@@ -1,0 +1,329 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Patch>
+  <Operation Class="PatchOperationSequence">
+    <operations>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Grass"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Grass"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Grass"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Grass"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_TallGrass"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_TallGrass"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_TallGrass"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_TallGrass"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Agave"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Agave"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Agave"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Agave"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-7</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Onion"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Onion"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Onion"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Onion"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-3</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Pumpkin"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Pumpkin"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>10</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Pumpkin"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>10</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Pumpkin"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-1</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Pepper"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Pepper"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>12</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Pepper"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>12</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Pepper"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-1</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Tomato"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Tomato"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>10</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Tomato"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>10</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Tomato"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-1</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_AppleTree"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_AppleTree"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_AppleTree"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_AppleTree"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_PeachTree"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_PeachTree"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_PeachTree"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_PeachTree"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_PlumTree"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_PlumTree"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_PlumTree"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_PlumTree"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_PearTree"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_PearTree"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_PearTree"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>5</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_PearTree"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDormancy>true</coldDormancy>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_Opuntia"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_Opuntia"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>8</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_Opuntia"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>8</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_Opuntia"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-8</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_BearBerryBush"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_BearBerryBush"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_BearBerryBush"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>0</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_BearBerryBush"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-40</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+      <li Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="VCE_BananaTree"]/plant/minGrowthTemperature</xpath>
+        <match Class="PatchOperationReplace">
+          <xpath>/Defs/ThingDef[defName="VCE_BananaTree"]/plant/minGrowthTemperature</xpath>
+          <value>
+            <minGrowthTemperature>15</minGrowthTemperature>
+          </value>
+        </match>
+        <nomatch Class="PatchOperationAdd">
+          <xpath>/Defs/ThingDef[defName="VCE_BananaTree"]/plant</xpath>
+          <value>
+            <minGrowthTemperature>15</minGrowthTemperature>
+          </value>
+        </nomatch>
+      </li>
+      <li Class="PatchOperationAddModExtension">
+        <xpath>/Defs/ThingDef[defName="VCE_BananaTree"]</xpath>
+        <value>
+          <li Class="CropColdToleranceOverhaul.ColdToleranceExtension">
+            <coldDeathTemperature>-2</coldDeathTemperature>
+          </li>
+        </value>
+      </li>
+    </operations>
+  </Operation>
+</Patch>
