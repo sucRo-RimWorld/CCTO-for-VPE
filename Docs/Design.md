@@ -43,3 +43,21 @@ The Project VE/non-VE implementation-entry comparison and its evidence-hashed de
 See `Docs/Research/PriorArt.md`; the required Project [new-module implementation gate](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/ExistingModAudit.md) still requires its formal validated decision record. Source inspection is not a native test or confirmed cold-tolerance balance.
 
 Source bootstrap and v1 XML implementation: [issue #1](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/1), PR #2 / PR #3. Native validation and release acceptance: [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).
+
+## 7. CCTO/VPE common-plant equality contract
+
+Where CCTO already supplies a Vanilla/MO plant matching a VPE v1 plant, **reuse exactly the existing CCTO settings** for native minimum-growth temperature, fixed cold-death temperature (if any) and cold dormancy. Do not invent an independent VPE temperature for these seven matches:
+
+| Existing owner | CCTO PlantDef | VPE PlantDef |
+|---|---|---|
+| Vanilla | `Plant_Grass` | `VCE_Grass` |
+| Vanilla | `Plant_TallGrass` | `VCE_TallGrass` |
+| Vanilla | `Plant_Agave` | `VCE_Agave` |
+| Medieval Overhaul | `DankPyon_Plant_Onions` | `VCE_Onion` |
+| Medieval Overhaul | `DankPyon_Plant_Pumpkins` | `VCE_Pumpkin` |
+| Medieval Overhaul | `DankPyon_Plant_Tomatoes` | `VCE_Tomato` |
+| Medieval Overhaul | `DankPyon_Tree_Apple` | `VCE_AppleTree` |
+
+`Tests/test_ccto_parity.py` extracts actual XML values from [CCTO main](https://github.com/sucRo-RimWorld/RimWorld-Crop-Cold-Tolerance-Overhaul) and compares them to this addon's committed XML and `Docs/PlantBalance.json`. The GitHub Actions workflow checks out the two current upstream `Patches/*.xml` files using sparse checkout; missing files, duplicate rules, mismatched conditional branches and differences in any of the three properties **fail CI**. A local test without CCTO source may skip this cross-repo test, but CI sets `CCTO_PARITY_REQUIRED=1` so it cannot skip. For local execution, set `CCTO_SOURCE_ROOT` to a CCTO checkout. The CI workflow may also be invoked manually after upstream CCTO changes; an upstream-only push does not automatically trigger this repository's CI.
+
+These are **distinct PlantDefs** with matched values, not interchangeable XML targets. The other seven VPE v1 species retain independently documented values. Source-parity PASS alone is not a RimWorld loaded-game, crop-dormancy or save-compatibility PASS.

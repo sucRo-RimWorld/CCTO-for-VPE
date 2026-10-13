@@ -10,3 +10,6 @@ Scripts/
 *.pyc
 __pycache__/
 Art/
+
+# Only used for optional CCTO source checkout during tests.
+.ccto-base/

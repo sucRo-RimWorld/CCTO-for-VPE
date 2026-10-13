@@ -70,7 +70,7 @@ class ContractTests(unittest.TestCase):
 
     def test_no_csharp_or_bundled_assemblies(self):
         forbidden = [x for x in ROOT.rglob("*") if x.is_file() and x.suffix.lower() in
-                     {".dll", ".cs", ".csproj"} and ".git" not in x.parts]
+                     {".dll", ".cs", ".csproj"} and ".git" not in x.parts and ".ccto-base" not in x.parts]
         self.assertEqual(forbidden, [])
 
 if __name__ == "__main__":
