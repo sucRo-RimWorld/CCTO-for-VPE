@@ -20,7 +20,7 @@
     <li>sucro.cropcoldtoleranceoverhaul</li>
     <li>VanillaExpanded.VPlantsE</li>
   </loadAfter>
-  <description>In development: VPE cold-tolerance XML compatibility for CCTO. No temperature patches are active in this repository yet; per-plant values and runtime validation are pending.
+  <description>In development: VPE cold-tolerance compatibility using the existing CCTO XML API. Fourteen ordinary VPE 1.6 plants have individual minimum-growth and cold-death or winter-dormancy settings. Six custom-class plants are not yet supported. This source has not been native-game validated or released.
 
-開発中。CCTOを使用したVPE植物の耐寒性互換Mod。温度設定パッチはまだ未実装。種別の数値と実機検証は今後実施。</description>
+開発中。VPEの通常植物14種にCCTOの最低生育温度・枯死温度・低温休眠を設定するXMLを実装した。独自植物クラス6種は対象外。実機検証と配布は未実施。</description>
 </ModMetaData>

@@ -23,10 +23,13 @@ When complete, the addon uses a single `Patches/ColdTolerance.xml`. For each of 
 
 CCTO keeps its 49 Vanilla and 29 MO specific PlantDefs and `MedievalOverhaul_ColdTolerance.xml`. **No MO addon or data separation**.
 
-## 4. Numeric state and implementation gate
-`Docs/PlantBalance.json` is the owner-controlled inventory. All numeric values are initially `null` / `pending`: that is intentional, **not zero degrees or permission for a generic copied tolerance**. Species-specific temperatures and seasonal/wild-survival behavior need evidence and review. A temporary research candidate is not a published value.
+## 4. Source-reviewed v1 numeric balance and XML implementation
 
-The development-only `Scripts/build_vpe_patch.py` must refuse to generate runtime XML while any species remains incomplete. After the Project VE **and non-VE** prior-art comparison and required decision record, and after the species values are fixed, populate all 14 entries, generate the patch, review diff and run static loaded-Def/native tests before release. There is **no live XML patch today**.
+The v1 model has **source-reviewed initial engineering values**: `Docs/PlantBalance.json` is the canonical 14-species numeric table; `Docs/Research/TemperatureEvidence.md` records botanical context, existing CCTO parity and explicit gameplay approximations. The generated `Patches/ColdTolerance.xml` is the runtime patch. These numbers are **model settings, not proven universal botanical lethal temperatures or author gameplay acceptance**.
+
+The Project VE/non-VE implementation-entry comparison and its evidence-hashed decision are in `Docs/Research/PriorArt.md` and `Docs/Research/ImplementationDecision.json`. The original VPE 1.6 14 ordinary / six custom-class exclusion remains unchanged. `Scripts/build_vpe_patch.py` is the canonical generator; tests verify the generated XML is semantically current, contains exactly one intended cold extension per ordinary plant, and refuses invalid or unapproved inputs.
+
+**Implementation source is not release-ready runtime evidence.** Native loaded-Def counts, XPath resolution, conflict with third-party temperature patches, wild-biome survival, perennial graphics and save compatibility are still unverified pending the persistent test host.
 
 ## 5. Required test premises
 1. Metadata: exact CCTO + VPE dependency IDs; VPE 1.6 target; addon loads after both; no direct MO dependency.
