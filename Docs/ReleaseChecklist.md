@@ -12,3 +12,5 @@ This is a development checklist, not evidence of release readiness.
 - [ ] Subscriber payload inspected: no Docs/Scripts/Tests/assemblies or development assets.
 - [ ] Workshop bilingual description, changelog and version synchronized only at approved release.
 - [ ] Steam upload and downloaded subscriber payload separately verified; no claim from GitHub CI.
+
+Native validation and Workshop release blockers are tracked separately in [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4). Owner code/XML implementation: PR #3, main `235663629fc77e689f2292292ff4bd327b8bb5fa`.
