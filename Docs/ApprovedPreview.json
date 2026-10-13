@@ -7,7 +7,8 @@
       1672,
       941
     ],
-    "sha256": "9aa841777b7051bae3be77cbd07363c40020e68771c4cd6430035f8432e635f5"
+    "sha256": "9aa841777b7051bae3be77cbd07363c40020e68771c4cd6430035f8432e635f5",
+    "repository_path": "Art/Sources/Workshop/ApprovedPreviewSource.png"
   },
   "preview": {
     "library_path": "/AMJ/References/CCTO-for-VPE/Preview640x360.png",
@@ -19,5 +20,5 @@
     "sha256": "3b8afa2bb10d261cc4b1d3ad31b5422eead999b886339deeb194ad6ad84c79af",
     "encoding": "PNG indexed 128-color; LANCZOS resize"
   },
-  "notes": "Author approved source on 2026-10-13. Preserve source bytes and use the byte-exact derived preview; no regenerated art. Library source is authoritative until Art/Sources is repo-archived."
+  "notes": "Author approved the exact original on 2026-10-13. Both exact original and the 640x360 pixel derivative are committed. Future art edits require a new author approval."
 }
