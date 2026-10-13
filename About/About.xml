@@ -20,7 +20,7 @@
     <li>sucro.cropcoldtoleranceoverhaul</li>
     <li>VanillaExpanded.VPlantsE</li>
   </loadAfter>
-  <description>In development: VPE cold-tolerance compatibility using the existing CCTO XML API. Fourteen ordinary VPE 1.6 plants have individual minimum-growth and cold-death or winter-dormancy settings. Six custom-class plants are not yet supported. Not independently tested in a running game: compatibility fixes will be based on user bug reports. Report issues at https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues .
+  <description>In development: VPE cold-tolerance compatibility using the existing CCTO XML API. Twenty VPE 1.6 plants (fourteen ordinary and six VPE custom classes) have individual minimum-growth and cold-death or winter-dormancy settings. Existing special plant classes and behavior are preserved. Not independently tested in a running game: compatibility fixes will be based on user bug reports. Report issues at https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues .
 
-開発中。VPEの通常植物14種にCCTOの最低生育温度・枯死温度・低温休眠を設定するXMLを実装した。独自植物クラス6種は対象外。実ゲーム未検証。利用者からのバグ報告に基づき修正する。報告先：https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues 。</description>
+開発中。VPE 1.6の通常植物14種と独自植物クラス6種、計20種にCCTOの最低生育温度・枯死温度または低温休眠を設定するXMLを実装した。独自クラスは変更しない。実ゲーム未検証。利用者からのバグ報告に基づき修正する。報告先：https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues 。</description>
 </ModMetaData>

@@ -1,4 +1,4 @@
-"""Compare the seven overlapping VPE plant cold rules to live CCTO source XML.
+"""Compare the nine overlapping VPE plant cold rules to live CCTO source XML.
 
 Run in CI with CCTO_SOURCE_ROOT=.ccto-base and CCTO_PARITY_REQUIRED=1.
 This is source equality, not proof of RimWorld's loaded Def or cold behavior.
@@ -18,7 +18,7 @@ if not SOURCE.is_absolute():
     SOURCE = ROOT / SOURCE
 
 # (CCTO source file, CCTO ThingDef, VPE ThingDef).
-# No other plant is asserted to be a shared CCTO species in VPE v1.
+# Nine explicit CCTO counterparts, including two newly approved custom-class VPE plants.
 MATCHES = (
     ("Vanilla_ColdTolerance.xml", "Plant_Grass", "VCE_Grass"),
     ("Vanilla_ColdTolerance.xml", "Plant_TallGrass", "VCE_TallGrass"),
@@ -27,6 +27,8 @@ MATCHES = (
     ("MedievalOverhaul_ColdTolerance.xml", "DankPyon_Plant_Pumpkins", "VCE_Pumpkin"),
     ("MedievalOverhaul_ColdTolerance.xml", "DankPyon_Plant_Tomatoes", "VCE_Tomato"),
     ("MedievalOverhaul_ColdTolerance.xml", "DankPyon_Tree_Apple", "VCE_AppleTree"),
+    ("MedievalOverhaul_ColdTolerance.xml", "DankPyon_Plant_Cabbages", "VCE_Cabbage"),
+    ("MedievalOverhaul_ColdTolerance.xml", "DankPyon_Tree_Lemon", "VCE_OrangeTree"),
 )
 
 
@@ -70,7 +72,7 @@ def values_for(root: ET.Element, def_name: str) -> tuple[int, int | None, bool]:
 def assert_parity(
     addon_xml: ET.Element, ccto_sources: dict[str, ET.Element], balance: dict
 ) -> None:
-    assert len(MATCHES) == len({vpe for _, _, vpe in MATCHES}) == 7
+    assert len(MATCHES) == len({vpe for _, _, vpe in MATCHES}) == 9
     for ccto_file, ccto_def, vpe_def in MATCHES:
         if vpe_def not in balance["include"]:
             raise AssertionError(f"{vpe_def}: absent from approved VPE scope")
@@ -90,7 +92,7 @@ def assert_parity(
 
 
 class CctoSharedPlantParityTests(unittest.TestCase):
-    def test_seven_shared_species_match_current_ccto_main(self):
+    def test_nine_shared_species_match_current_ccto_main(self):
         required = os.getenv("CCTO_PARITY_REQUIRED") == "1"
         files = {filename for filename, _, _ in MATCHES}
         missing = sorted(

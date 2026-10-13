@@ -4,7 +4,7 @@
 
 **Finding:** The six VPE 1.6 custom-class plants excluded from CCTO for VPE's initial **14-plant** XML patch can all be targeted using XML for `plant/minGrowthTemperature` and CCTO's `ColdToleranceExtension` (cold death and, if appropriate, dormancy). VPE uses custom subclasses of `RimWorld.Plant`, but none of these six source classes overrides `TickLong()`, `MakeLeafless()` or `CheckMakeLeafless()`. Exclusion was a conservative v1 scope choice, **not proof that XML cannot work**.
 
-This is a **source audit**, not a loaded RimWorld compatibility test. The author waives mandatory VPE native testing and will use player bug reports. **No new numeric values or patch operations are approved or implemented by this report.** The production 14 included / six excluded inventory, current temperature XML, and seven existing CCTO Vanilla/MO counterpart mappings remain unchanged.
+This is a **source audit**, not a loaded RimWorld compatibility test. The author waives mandatory VPE native testing and will use player bug reports. This report documents **original feasibility evidence**. A subsequent source-controlled expansion has now added six reviewed numeric profiles and XML mappings, making **20 included / zero excluded core VPE plants**. The original 14 values remain unchanged, and CCTO value parity checks now cover nine VPE counterparts. See [SixCustomClassBalance.md](SixCustomClassBalance.md) for current six-species decisions; still no native RimWorld gameplay test.
 
 Inspected source versions:
 - [VPE 1.6 farm and tree Defs](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded/tree/1d64cbe34a98585a29e87678dc37ea4c144f3999/1.6/Defs/ThingDefs_Plants) and [six original class implementations](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded/tree/1d64cbe34a98585a29e87678dc37ea4c144f3999/1.6/Source/VanillaPlantsExpanded/VanillaPlantsExpanded/Plant%20Classes), source repository main `1d64cbe34a98585a29e87678dc37ea4c144f3999`.
@@ -36,7 +36,7 @@ Inspected source versions:
 
 ## Implementation implications
 
-1. The single CCTO for VPE addon may support all six by adding `minGrowthTemperature` and a `ColdToleranceExtension` per exact DefName, **without changing `thingClass` or adding a C# assembly**, after crop-by-crop numeric balance decisions.
+1. The single CCTO for VPE addon now supports all six in source XML by adding `minGrowthTemperature` and a `ColdToleranceExtension` per exact DefName, **without changing `thingClass` or adding a C# assembly**, under the per-plant balance decisions in [SixCustomClassBalance.md](SixCustomClassBalance.md).
 2. **CCTO cold-death threshold** is XML-addressable for all six; `coldDormancy` is a per-plant design decision, not universally appropriate (especially Beet and Cherry).
-3. Preserve CCTO base Vanilla/MO numeric ownership, VPE's rain/toxin/river/heat/graphic behavior, and source-validation gates. Existing 14 plus 6 tests must change only when the six mappings actually land; never advertise a 20-plant implementation from this research.
+3. Preserve CCTO base Vanilla/MO numeric ownership, VPE's rain/toxin/river/heat/graphic behavior, and source-validation gates. Core source checks now assert 20 included and zero excluded, and runtime/native behavior remains unverified; do not advertise compatibility for separate VPE child packs.
 4. Source implementation tracked at [issue #10](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/10); future separate VPE-family packs at [issue #8](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/8); player-reported bugs at [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).

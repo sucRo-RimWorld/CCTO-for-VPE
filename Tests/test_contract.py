@@ -14,20 +14,26 @@ INCLUDE = {
     "VCE_PeachTree", "VCE_PlumTree", "VCE_PearTree",
     "VCE_Opuntia", "VCE_BearBerryBush", "VCE_BananaTree",
 }
-EXCLUDE = {
-    "VCE_Peas", "VCE_Eggplant", "VCE_Cabbage", "VCE_Beet",
-    "VCE_CherryTree", "VCE_OrangeTree",
+ADDED = {
+    "VCE_Peas": "VanillaPlantsExpanded.Plant_RainAffected",
+    "VCE_Eggplant": "VanillaPlantsExpanded.Plant_HighTempAffected",
+    "VCE_Cabbage": "VanillaPlantsExpanded.Plant_StopsGrowingInToxins",
+    "VCE_Beet": "VanillaPlantsExpanded.Plant_WinterResistant",
+    "VCE_CherryTree": "VanillaPlantsExpanded.Plant_WinterBlooming",
+    "VCE_OrangeTree": "VanillaPlantsExpanded.Plant_ChecksRiver",
 }
+EXCLUDE = set()
 
 class ContractTests(unittest.TestCase):
     def test_exact_scope(self):
         self.assertEqual(DATA["schema_version"], 1)
-        self.assertEqual(len(DATA["include"]), 14)
-        self.assertEqual(len(DATA["exclude"]), 6)
-        self.assertEqual(set(DATA["include"]), INCLUDE)
+        self.assertEqual(len(DATA["include"]), 20)
+        self.assertEqual(len(DATA["exclude"]), 0)
+        self.assertEqual(set(DATA["include"]), INCLUDE | set(ADDED))
         self.assertEqual(set(DATA["exclude"]), EXCLUDE)
-        self.assertEqual(set(DATA["plants"]), INCLUDE)
+        self.assertEqual(set(DATA["plants"]), INCLUDE | set(ADDED))
         self.assertFalse(INCLUDE & EXCLUDE)
+        self.assertEqual(DATA["custom_classes"], ADDED)
 
     def test_metadata_dependencies(self):
         root = ET.parse(ROOT / "About" / "About.xml").getroot()
@@ -52,11 +58,13 @@ class ContractTests(unittest.TestCase):
             xml = ET.parse(output).getroot()
             defnames = [node.text for node in xml.findall(".//xpath") if node.text and
                         node.text.endswith("]/plant/minGrowthTemperature")]
-            self.assertEqual(len(defnames), 28)  # conditional + matching replace
-            for species in INCLUDE:
+            self.assertEqual(len(defnames), 40)  # conditional + matching replace
+            for species in INCLUDE | set(ADDED):
                 self.assertTrue(any(f'defName="{species}"' in x for x in defnames))
-            for species in EXCLUDE:
-                self.assertNotIn(species, ET.tostring(xml, encoding="unicode"))
+            for species in ADDED:
+                self.assertIn(species, ET.tostring(xml, encoding="unicode"))
+            for forbidden_field in ("thingClass", "growDays", "harvestYield", "dieFromToxicFallout", "graphicData"):
+                self.assertNotIn(forbidden_field, ET.tostring(xml, encoding="unicode"))
 
     def test_generator_refuses_unapproved_values(self):
         if DATA["status"] == "approved":

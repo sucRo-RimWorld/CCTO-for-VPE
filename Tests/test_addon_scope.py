@@ -38,8 +38,8 @@ class OptionalAddonScopeContract(unittest.TestCase):
             {"sucro.cropcoldtoleranceoverhaul", "VanillaExpanded.VPlantsE"},
         )
         current = json.loads((ROOT / "Docs" / "PlantBalance.json").read_text())
-        self.assertEqual(len(current["include"]), 14)
-        self.assertEqual(len(current["exclude"]), 6)
+        self.assertEqual(len(current["include"]), 20)
+        self.assertEqual(len(current["exclude"]), 0)
 
 
 if __name__ == "__main__":
