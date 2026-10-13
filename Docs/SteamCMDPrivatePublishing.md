@@ -12,6 +12,28 @@
 - Every reported upload records `private_verified=false`. **A successful command alone does not prove the item is private or that Steam serves the expected content.** The owner must inspect the item as the authenticated creator, check visibility and the downloaded subscriber payload, then set `private_verified=true` in the host-local state before a subsequent update.
 - A protected GitHub environment with explicit author/reviewer approval is recommended. Merely specifying `environment:` in YAML does not prove it has reviewer protection. Avoid account credentials on public/ephemeral runners. Keep host account and game installation isolated from ordinary gameplay and native-test profiles.
 
+## Host identity and correction to the initial setup instructions
+
+The Linux **operating-system account** that owns a general SteamCMD publisher installation should be named `steam-publisher`, **not** `ccto-publisher`. A Mod-specific name is unsuitable when the author may use the same dedicated publisher environment for other author-owned AMJ/CCTO Workshop items. The OS service identity is not the individual Mod identity.
+
+The **GitHub runner registration and safety configuration remain Mod/repository-scoped**: this workflow still requires the repo-specific isolated runner label `steamcmd-private-publisher`, the `steam-workshop-private` environment and a separate CCTO-for-VPE `CCTO_STEAM_STATE` file; publishing for *other* AMJ Mods has **not** been implemented or authorized by this workflow. A single OS user reusing Steam's cached credentials across repositories provides **no isolation between those repositories**; decide whether to run trusted workflows under that shared publishing identity or to split the publisher identities/containers before registering any additional runners. Do not give untrusted PR/test runners access to the Steam account.
+
+### Correction for a host on which only steps 1–3 used `ccto-publisher`
+
+No SteamCMD reinstall is required. After exiting any `ccto-publisher` shell to root (and confirming the account has no running processes), rename the user and its home **as root**:
+
+```bash
+# Run as root; do not attempt while logged in as ccto-publisher.
+usermod -l steam-publisher -d /home/steam-publisher -m ccto-publisher
+groupmod -n steam-publisher ccto-publisher
+su - steam-publisher
+whoami
+test -x "$HOME/steamcmd/steamcmd.sh"
+"$HOME/steamcmd/steamcmd.sh" +quit
+```
+
+If `usermod` reports the account in use, stop and inspect the remaining processes before retrying; do **not** delete the home directory. SteamCMD's completed installation remains under the moved home. This correction assumes **no GitHub runner has yet been registered**, no SteamCMD service has been created and no locally configured environment file contains the old absolute home path. For a later-stage setup, first audit and migrate those paths and re-register/service-configure the runner safely.
+
 ## Required one-time runner provisioning (not yet performed by this source change)
 
 1. Provision a dedicated persistent Linux publisher environment trusted by the author. Install SteamCMD using the OS-supported mechanism; make the actual executable available and executable. Never copy a live player's Steam Guard data, personal saves or full game root to GitHub.
