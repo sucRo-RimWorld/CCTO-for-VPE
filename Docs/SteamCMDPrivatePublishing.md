@@ -12,12 +12,16 @@ separate WSL `steamcmd-private-publisher` `upload_private` for the
 existing ID only → interactive Windows `steamworks-tag-publisher`
 `sync_tags` for About-derived `Mod` and version tags. SteamCMD is responsible
 for file upload; Steamworks handles tags. The non-mutating
-`tag_runner_check` is still required as a first connectivity/identity
-test of the newly registered Windows runner and **does not reapply tags**.
+`tag_runner_check` has now **PASSED on the actual Windows runner** in
+[Actions run #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195):
+`preflight` and `tag_runner_check` both completed successfully at
+main `177ab94fe39ad6487960ca2ca51c747232960a1f`, while
+`upload_private` and `sync_tags` were skipped. This confirms only
+the checkout, runner access, and authenticated Steamworks probe.
+It did **not** reapply tags or test the actual update operation.
 
-Do not treat the author's completed YADA upload or a successful Windows local
-Steamworks probe as evidence that GitHub Actions has completed its
-`tag_runner_check` or that future automated content updates work. Before
+Do not treat the author's completed YADA upload or successful Windows
+Steamworks probe as evidence that **future content uploads** work. Before
 any subsequent `upload_private`, reconcile the **actual WSL publisher's**
 `CCTO_STEAM_STATE` with Workshop ID `3819497323`, creator identity and
 private visibility. A mismatched host state is a safety stop, not reason to
