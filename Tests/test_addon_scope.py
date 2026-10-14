@@ -29,6 +29,15 @@ class OptionalAddonScopeContract(unittest.TestCase):
             self.assertTrue(item["source_notes"])
         self.assertFalse((ROOT / "Patches" / "Addons").exists(),
                          "Inventoried-only addons must not ship unreviewed patches")
+        self.assertFalse((ROOT / "Compatibility").exists(),
+                         "Candidate-only pack folders must not be mistaken for supported content")
+
+    def test_loader_keeps_core_patch_active_without_optional_packs(self):
+        loader = ET.parse(ROOT / 'LoadFolders.xml').getroot()
+        self.assertEqual(loader.tag, 'loadFolders')
+        self.assertEqual([node.tag for node in loader], ['v1.6'])
+        self.assertEqual([(entry.text or '').strip() for entry in loader[0]], ['/'])
+        self.assertEqual([entry.attrib for entry in loader[0]], [{}])
 
     def test_child_packs_not_hard_dependencies(self):
         root = ET.parse(ROOT / "About" / "About.xml").getroot()

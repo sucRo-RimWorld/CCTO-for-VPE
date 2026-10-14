@@ -6,7 +6,7 @@ Independent optional XML compatibility addon for **Crop Cold Tolerance Overhaul*
 
 - CCTO's Vanilla and Medieval Overhaul plant support stays in CCTO itself.
 - VPE core 1.6 support now covers 20 source-implemented PlantDefs (14 ordinary plus six VPE custom-class targets) via XML, without changing custom classes. Runtime effects are not independently validated.
-- This **same** Mod is the owner of future compatibility for optional VPE plant add-ons (More Plants, Mushrooms, Succulents, Flowers), but **none of those packs is supported by XML yet**. They will use independent, conditional XML only when installed; see [candidate inventory](Docs/AddonCompatibility.md).
+- This **same** Mod is the owner of future compatibility for optional VPE plant add-ons (More Plants, Mushrooms, Succulents, Flowers), but **none of those packs is supported by XML yet**. Once reviewed, each pack will use a separate `Compatibility/<Pack>/Patches/` folder selected through `LoadFolders.xml` and its verified `IfModActive` provider Package ID. Absent-pack XML will not be loaded. Currently the loader contains only the VPE 1.6 core path and no pack XML ships; see [candidate inventory](Docs/AddonCompatibility.md).
 - Initial per-species growth, cold-death and dormancy values are recorded in `Docs/PlantBalance.json`; `Patches/ColdTolerance.xml` is generated from them.
 - The addon adds no C# or bundled DLL; it will use CCTO's existing XML extension.
 - RimWorld 1.6 is the source-inspected target. No 1.7 VPE compatibility or native runtime PASS is claimed.
@@ -29,7 +29,7 @@ CCTOとVanilla Plants Expanded向けの独立した任意互換Mod。
 
 VPE 1.6の独自植物クラス6種も追加対応した。植物固有の成長・開花・河川などの処理は置換しない。MOの対応は分離せず、CCTO本体に残す。
 
-**VPE系列の追加植物Modへの耐寒性互換も本Modで一元管理する。** More Plants・Mushrooms・Succulents・Flowersは今後の対応候補で、現在は未実装。追加Modを必須依存にせず、導入されている場合だけXMLを適用する。
+**VPE系列の追加植物Modへの耐寒性互換も本Modで一元管理する。** More Plants・Mushrooms・Succulents・Flowersは今後の対応候補で、現在は未実装。追加Modを必須依存にせず、各パックのPackage IDを確認した後に`LoadFolders.xml`の`IfModActive`で対象フォルダだけ読み込む。現在はVPE本体のXMLのみを読み込み、追加パック用XMLは未実装。
 
 ## Custom behavior / 独自実装の注意
 

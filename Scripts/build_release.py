@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     'About/About.xml', 'About/Manifest.xml', 'About/Changelog.txt',
     'About/PublishedFileId.txt', 'About/Preview.png',
-    'Patches/ColdTolerance.xml', 'LICENSE',
+    'Patches/ColdTolerance.xml', 'LoadFolders.xml', 'LICENSE',
 )
 FOLDER = 'CCTO-for-VPE/'
 DATE = (2026, 10, 13, 0, 0, 0)
@@ -50,6 +50,18 @@ def check_preview(data: bytes) -> None:
         raise ValueError('Missing PNG data or unexpected preview size/format')
     if len(zlib.decompress(b''.join(chunks))) != 360 * (1 + 640):
         raise ValueError('Malformed or incomplete decoded preview')
+
+
+def check_load_folders(data: bytes) -> None:
+    """Validate the 1.6 core-only loader; optional pack entries require a separate audit."""
+    root = ET.fromstring(data)
+    if root.tag != 'loadFolders' or len(root) != 1 or root[0].tag != 'v1.6':
+        raise ValueError('Unexpected RimWorld loadFolders version or root')
+    entries = list(root[0])
+    if (len(entries) != 1 or entries[0].tag != 'li'
+            or (entries[0].text or '').strip() != '/'
+            or entries[0].attrib or len(entries[0]) != 0):
+        raise ValueError('Unreviewed optional pack loader or missing core root')
 
 
 def validate(root: Path = ROOT) -> dict[str, bytes]:
@@ -89,6 +101,7 @@ def validate(root: Path = ROOT) -> dict[str, bytes]:
         raise ValueError('Changelog heading differs from current version')
     if ET.fromstring(files['Patches/ColdTolerance.xml']).tag != 'Patch':
         raise ValueError('Invalid production XML')
+    check_load_folders(files['LoadFolders.xml'])
     return files
 
 
@@ -99,6 +112,7 @@ def check_zip(path: Path) -> None:
         if archive.testzip() is not None:
             raise ValueError('ZIP CRC mismatch')
         check_preview(archive.read(FOLDER + 'About/Preview.png'))
+        check_load_folders(archive.read(FOLDER + 'LoadFolders.xml'))
 
 
 def create_zip(output: Path, source: Path = ROOT) -> Path:

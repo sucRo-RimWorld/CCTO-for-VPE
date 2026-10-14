@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<loadFolders>
+  <v1.6>
+    <li>/</li>
+    <!-- Add an IfModActive entry for Compatibility/<Pack> only after its
+         exact provider packageId, PlantDefs and balance are approved.
+         Candidate packs must not load or ship unreviewed XML. -->
+  </v1.6>
+</loadFolders>

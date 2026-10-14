@@ -79,7 +79,7 @@ jobs:
           CCTO_SOURCE_ROOT: .ccto-base
           CCTO_PARITY_REQUIRED: '1'
         run: python -m unittest discover -s Tests -p 'test_*.py' -v
-      - name: Build exactly seven subscriber files
+      - name: Build exactly eight subscriber files
         run: |
           python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
           python Scripts/steamcmd_private.py --zip Dist/CCTO-for-VPE-0.1.0.zip

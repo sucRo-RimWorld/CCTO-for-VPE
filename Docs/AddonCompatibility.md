@@ -1,33 +1,35 @@
 # VPE addon family compatibility — owner procedure
 
-**Authority:** `Docs/Design.md §8`; implementation tracking [issue #8](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/8). The candidate-only provider list is `Docs/AddonInventory.json`. **None of these addon packs has compatibility XML yet.**
+**Authority:** `Docs/Design.md §8`; implementation tracking [issue #8](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/8). `Docs/AddonInventory.json` is the candidate inventory. **No optional pack compatibility XML is implemented or shipped yet.**
 
-## Architecture and scope
+## Current and future layout
 
-One independent **CCTO for VPE** Mod owns all selected cold-tolerance XML compatibility for the VPE plant ecosystem. Base CCTO owns the C# API and Vanilla/MO values. Optional VPE plant-pack support is not split into a new Workshop product or forced into CCTO base.
+The single CCTO for VPE addon owns the VPE core and eligible VPE plant-provider add-ons; CCTO base owns Vanilla/MO and the C# framework. Only VPE 1.6 is source-inspected.
 
-- **Existing v1:** `Patches/ColdTolerance.xml` / `Docs/PlantBalance.json` — only 14 ordinary VPE base plants; six custom-class plants deferred. Tests must continue to audit this exact scope, not an inflated total.
-- **Subsequent optional packages:** `Patches/Addons/<Pack>.xml` and matching owner-approved per-pack balance/source file, only after full audit. No such runtime XML files exist in the current source.
-- **Gating:** load/execute a pack's XML only if that pack's exact identity is found; use safe `PatchOperationFindMod` or a source-verified equivalent plus target existence checks. Each patch should be independent, including when two optional packs coexist. Confirm the exact match name, provider packageId (when supplied/verified), and current source Defs before coding. A missing provider must not produce a missing XPath error, silent data changes, or a new required dependency.
-- **Startup size:** no C# or bundled DLL; no hard dependency on optional packs, no blanket XPath across other mods. Avoid needlessly scanning/updating unrelated XML on startup. Actual performance impact is **not measured**.
-- **Behavioral scope:** native `plant/minGrowthTemperature` and CCTO extension only. No provider artwork, classes, fertility, harvest, growth days, new zones, research or cooking behavior copied/overridden.
+- **Implemented core:** `Patches/ColdTolerance.xml` and `Docs/PlantBalance.json` cover exactly **20** base VPE plants (14 normal, six custom-class); no optional pack rows in this source.
+- **Runtime loader:** `LoadFolders.xml` contains a `<v1.6>` stanza with `<li>/</li>`, which must remain unconditional to load core `Patches/`. No current candidate has an `IfModActive` entry.
+- **Future pack XML:** `Compatibility/<Pack>/Patches/ColdTolerance.xml`, with separately audited owner-specific balance and tests. The `Compatibility/` directory does not exist until a pack has passed the audit.
+- **Pack gate:** add one `<li IfModActive="EXACT_VERIFIED_PACKAGE_ID">Compatibility/<Pack></li>` inside `LoadFolders.xml` for each approved pack. Use the provider's real active Package ID from audited source/loaded metadata; do not infer it from a repository name or invent an ID where the upstream About.xml omits one. This keeps absent-pack XML out of RimWorld loading/parsing, rather than executing a no-op `PatchOperationFindMod` inside always-loaded XML.
+- **Packaging:** `Scripts/build_release.py` explicitly includes `LoadFolders.xml` and rejects currently unsupported loader entries. Once a pack is implemented, update the exact ZIP allowlist, loader validation, and negative absent/present/provider-combination tests *in the same change*; verify the optional patch XML reaches the actual subscriber ZIP. The current eight-file release contains no pack XML.
+- **Compatibility:** only CCTO and base VPE are hard dependencies. No addon C#/DLL or copied provider assets. No blanket XPath scans across other Mods. `PatchOperationFindMod` or target-existence guards may still be used as *secondary* safety checks after a pack's folder has been selected.
+- **Performance:** the purpose of conditional folders is to avoid parsing patches belonging to absent providers. No actual startup time measurement or loaded-game PASS exists for this design.
 
-## Candidate packs
+## Candidate packs (unsupported)
 
 | VPE upstream package | Inspection status | Notes |
 |---|---|---|
-| [More Plants](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-MorePlants) | Repository 1.6 XML present; no compatibility implementation | Mixed standard/custom crop classes, fruit trees, cultivated flowers and special growing zones |
-| [Mushrooms](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Mushrooms) | Repository 1.6 XML present; no compatibility implementation | Unusual fungal growth classes, possible conditional DLC content and at least one non-plant building |
-| [Succulents](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Succulents) | Repository 1.6 XML present; no compatibility implementation | Decorative plants; foliage/evergreen hardiness requires individual balance |
-| [Flowers](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Flowers) | Repository 1.6 XML present; no compatibility implementation | Decoratives and special bloom behavior; some parent-only ThingDefs |
+| [More Plants](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-MorePlants) | Repository 1.6 XML present; no compatibility implementation | Mixed normal/custom plant classes, fruit trees and special growing zones |
+| [Mushrooms](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Mushrooms) | Repository 1.6 XML present; no compatibility implementation | Custom fungal growth and possibly DLC-gated content; exclude non-plant buildings |
+| [Succulents](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Succulents) | Repository 1.6 XML present; no compatibility implementation | Decorative plants; requires individual temperature/dormancy evidence |
+| [Flowers](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded-Flowers) | Repository 1.6 XML present; no compatibility implementation | Some parent-only Defs and special bloom behavior |
 
-These are verified repositories/candidate sets, **not supported-pack claims or verified package IDs**. Their About.xml may omit a top-level packageId; do not guess it. Future third-party **VPE plant** addons may be inventoried here if they genuinely provide plants; unrelated VE packs remain out of scope.
+These are candidates, **not** verified Package IDs or supported content. Additional third-party VPE plant packs require the same review.
 
-## Entry checklist per additional pack
+## Per-pack implementation gate
 
-1. Pin source/provider revisions, RimWorld version, hard dependencies and optional DLC. Inspect loaded/supported plant definitions, parent-only ThingDefs, duplicate DefNames, `thingClass` and interactions.
-2. Classify every candidate: **ordinary XML-eligible**, **custom-class requires manual audit**, **non-plant/out-of-scope**. Do not implement special plants merely because a similar XML field exists.
-3. Record crop-specific numeric evidence and parity with existing CCTO settings where the plant is equivalent; capture independently reviewable owner source.
-4. Add a separate, conditional patch under `Patches/Addons/` with static checks for absent/present provider, one extension per included Def, safe XPath, no XML cross-effects when other packs are absent.
-5. Preserve v1 14+6 tests and 7 shared counterparts. CI checks source/pack value parity as source evidence, not as native gameplay PASS. Publish exact supported-pack list and the unverified native-state disclosure.
-6. Triage feedback from real VPE users in [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4); no mandatory author native-play test. Steam upload and payload verification remain author-controlled.
+1. Pin upstream provider source/commit, 1.6 compatible XML, actual Package ID, dependency/DLC conditions, all eligible PlantDefs, parent-only placeholders and duplicate names.
+2. Review ordinary and custom `thingClass` separately, including game code behavior; defer any unsafe class or special mechanics instead of guessing.
+3. Record each approved minimum growth, cold-death or dormancy value and CCTO Vanilla/MO shared-species parity evidence outside the base 20-plant balance source.
+4. Generate pack XML inside its isolated `Compatibility/<Pack>/Patches/`, add only its audited `IfModActive` loader entry, package it in the subscriber ZIP, and reject absent-provider patches, XPath failures, double extensions, and interference across concurrently installed packs in static tests.
+5. Keep existing 20-core/six-custom-class/nine-shared-counterpart tests and hard dependencies intact. Distinguish offline packaging validation from loaded-game testing; the author waives mandatory native VPE tests only for this optional addon.
+6. Update accurate supported-pack disclosure before a separate author-controlled Workshop action; route user bug reports through [issue #4](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/4).
