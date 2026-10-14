@@ -21,7 +21,7 @@ function Require-Program([string]$Name) {
     return $cmd
 }
 
-if (-not $IsWindows -and ($PSVersionTable.PSEdition -eq 'Core')) {
+if ($PSVersionTable.PSEdition -ne 'Core' -or -not $IsWindows) {
     throw 'This launcher only supports an interactive Windows Steam desktop session'
 }
 if ([Diagnostics.Process]::GetCurrentProcess().SessionId -eq 0) {
@@ -74,7 +74,7 @@ if ($BuildPinnedAgent) {
     if ($LASTEXITCODE -ne 0) { throw 'Pinned SteamWorkshopAgent revision not found' }
     $head = (& git -C $sourceRoot rev-parse HEAD).Trim()
     if ($head -cne $PinnedUpstream) { throw 'Upstream source commit differs from reviewed pin' }
-    $project = Join-Path $sourceRoot 'srcSteamWorkshopAgentSteamWorkshopAgent.csproj'
+    $project = Join-Path $sourceRoot 'src/SteamWorkshopAgent/SteamWorkshopAgent.csproj'
     if (-not (Test-Path -LiteralPath $project)) { throw 'Reviewed SteamWorkshopAgent project missing' }
     New-Item -ItemType Directory -Force -Path $binaryRoot | Out-Null
     & dotnet publish $project -c Release -r win-x64 --self-contained false -p:BuildBridgeTools=false -o $binaryRoot
