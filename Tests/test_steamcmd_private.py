@@ -25,7 +25,8 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('"visibility" "2"', raw)
         self.assertNotIn('"visibility" "0"', raw)
         self.assertNotIn('"visibility" "1"', raw)
-        self.assertIn(r'First line\nSecond \"quoted\" line', raw)
+        self.assertIn('First line\nSecond ' + r'\"quoted\" line', raw)
+        self.assertNotIn(r'First line\nSecond', raw)
         self.assertIn('"publishedfileid" "0"', raw)
         self.assertEqual(APPID, '294100')
         self.assertEqual(VISIBILITY, '2')
@@ -33,6 +34,17 @@ class SteamCMDPrivateContract(unittest.TestCase):
             make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'), 'x', 'desc', 'note', '-1')
         with self.assertRaises(ValueError):
             vdf_quote('a\x00b')
+
+    def test_workshop_description_keeps_real_line_breaks(self):
+        description = (ROOT / 'Docs/SteamWorkshopDescription.txt').read_text(encoding='utf-8')
+        self.assertNotIn(r'\n', description)
+        raw = make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'),
+                       'Safe title', description, '0.1.0 - First', '123456789')
+        self.assertIn('"description" "' + description + '"', raw)
+        self.assertNotIn(r'\n', raw)
+        self.assertEqual(vdf_quote('first\r\nsecond\rthird'), '"first\nsecond\nthird"')
+        self.assertIn('"publishedfileid" "123456789"', raw)
+        self.assertIn('"visibility" "2"', raw)
 
     def test_workflow_cannot_auto_publish_or_change_visibility(self):
         workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
