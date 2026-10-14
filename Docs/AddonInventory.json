@@ -8,11 +8,11 @@
       "slug": "more-plants",
       "name": "Vanilla Plants Expanded - More Plants",
       "github_repository": "Vanilla-Expanded/VanillaPlantsExpanded-MorePlants",
-      "inspected_main_commit": "9caf7c02c07dbf1fda2ecfcc203d71e6e67cd6f7",
+      "inspected_main_commit": "a4afc14f54e84c623df3021781715a1f22f21e1d",
       "source_target_version": "1.6",
-      "package_id": null,
+      "package_id": "VanillaExpanded.VPlantsEMore",
       "status": "candidate_not_implemented",
-      "source_notes": "Cultivated farm, trees and flowers; custom Plant classes and optional zone/DLC/addon content require audit.",
+      "source_notes": "Source-only 1.6 preliminary inventory: 43 unconditional Plant ThingDefs (26 farm, 12 flowers, 5 trees) plus 8 conditional (3 Ideology, 4 Vanilla Cooking Expanded, 1 VFE Medieval 2); 17 use explicitly declared custom thingClass. No values or patch approved; exact packageId confirmed from upstream About.xml. Special cultivation and class behavior require further audit.",
       "patch": null
     },
     {
@@ -21,9 +21,9 @@
       "github_repository": "Vanilla-Expanded/VanillaPlantsExpanded-Mushrooms",
       "inspected_main_commit": "e77b54c8c04bc9d775dc070b47ccbf40c1ab7aa2",
       "source_target_version": "1.6",
-      "package_id": null,
+      "package_id": "VanillaExpanded.VPlantsEMushrooms",
       "status": "candidate_not_implemented",
-      "source_notes": "Ordinary and custom mushroom classes; exclude non-plant buildings, consider optional Biotech definitions.",
+      "source_notes": "Ordinary and custom mushroom classes; exclude non-plant buildings, consider optional Biotech definitions. Exact packageId confirmed from upstream About.xml; source XML semantics and values still unaudited.",
       "patch": null
     },
     {
@@ -32,9 +32,9 @@
       "github_repository": "Vanilla-Expanded/VanillaPlantsExpanded-Succulents",
       "inspected_main_commit": "dbf9808c204d66404361902ddce6726516ed3d8f",
       "source_target_version": "1.6",
-      "package_id": null,
+      "package_id": "VanillaExpanded.VPlantsESucculents",
       "status": "candidate_not_implemented",
-      "source_notes": "Decorative cultivated plant definitions in 1.6 XML; not yet assigned growth/death/dormancy values.",
+      "source_notes": "Decorative cultivated plant definitions in 1.6 XML; not yet assigned growth/death/dormancy values. Exact packageId confirmed from upstream About.xml; source XML semantics and values still unaudited.",
       "patch": null
     },
     {
@@ -43,9 +43,9 @@
       "github_repository": "Vanilla-Expanded/VanillaPlantsExpanded-Flowers",
       "inspected_main_commit": "817000568ef3c6642c6046c9cbc3f2a3f046ba43",
       "source_target_version": "1.6",
-      "package_id": null,
+      "package_id": "VanillaExpanded.VPEFlowers",
       "status": "candidate_not_implemented",
-      "source_notes": "Decorative flowers; parent-only ThingDef and special blooming class must be filtered during audit.",
+      "source_notes": "Decorative flowers; parent-only ThingDef and special blooming class must be filtered during audit. Exact packageId confirmed from upstream About.xml; source XML semantics and values still unaudited.",
       "patch": null
     }
   ]
