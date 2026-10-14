@@ -73,6 +73,8 @@ def _receipt_matches(path: Path, tags: tuple[str, ...]) -> bool:
         obj = json.loads(path.read_text(encoding='utf-8'))
     except (json.JSONDecodeError, UnicodeError):
         raise ValueError('Invalid publisher receipt; stop instead of retrying an ambiguous update')
+    if obj.get('steamworks_submit_result') == 'PENDING':
+        raise ValueError('Prior tag submission may have started; verify Steam before any retry')
     return (obj.get('schema') == 1
             and obj.get('publishedfileid') == EXPECTED_WORKSHOP_ID
             and obj.get('appid') == APPID
@@ -80,14 +82,14 @@ def _receipt_matches(path: Path, tags: tuple[str, ...]) -> bool:
             and obj.get('steamworks_submit_result') == 'OK')
 
 
-def _store_receipt(path: Path, tags: tuple[str, ...]) -> None:
+def _store_receipt(path: Path, tags: tuple[str, ...], result: str = 'OK') -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     if stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
         raise ValueError('Receipt parent must be private')
     obj = {
         'schema': 1, 'publishedfileid': EXPECTED_WORKSHOP_ID,
         'appid': APPID, 'tags': list(tags),
-        'steamworks_submit_result': 'OK',
+        'steamworks_submit_result': result,
         'steam_page_readback_verified': False,
     }
     fd, tmp = tempfile.mkstemp(prefix='.steam-tags-', dir=path.parent)
@@ -118,6 +120,9 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str) -> str:
     if (probe.get('ready') is not True or probe.get('steamUserLoggedOn') is not True
             or probe.get('steamAppId') != int(APPID)):
         raise RuntimeError('Steam desktop session for RimWorld is not authenticated')
+    # Intent is durable before the potentially ambiguous Steam submission.
+    # An aborted/crashed run remains PENDING and cannot silently retry.
+    _store_receipt(receipt, tags, result='PENDING')
     # Numeric target + explicit tags avoids parsing an untrusted local mod path.
     # The agent calls only StartItemUpdate/SetItemTags/SubmitItemUpdate.
     result = run_agent(agent, ['set-tags', EXPECTED_WORKSHOP_ID, *tags, '--confirm',
