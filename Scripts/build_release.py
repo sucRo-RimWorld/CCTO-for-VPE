@@ -15,10 +15,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     'About/About.xml', 'About/Manifest.xml', 'About/Changelog.txt',
-    'About/Preview.png', 'Patches/ColdTolerance.xml', 'LICENSE',
+    'About/PublishedFileId.txt', 'About/Preview.png',
+    'Patches/ColdTolerance.xml', 'LICENSE',
 )
 FOLDER = 'CCTO-for-VPE/'
 DATE = (2026, 10, 13, 0, 0, 0)
+EXPECTED_WORKSHOP_ID = '3819497323'  # Author-selected existing item; never auto-create a replacement
 
 
 def check_preview(data: bytes) -> None:
@@ -64,6 +66,9 @@ def validate(root: Path = ROOT) -> dict[str, bytes]:
     if hashlib.sha256(files['About/Preview.png']).hexdigest() != source_manifest['preview']['sha256']:
         raise ValueError('Preview differs from author-approved resized image')
     check_preview(files['About/Preview.png'])
+    published_id = files['About/PublishedFileId.txt'].decode('utf-8').strip()
+    if published_id != EXPECTED_WORKSHOP_ID:
+        raise ValueError('PublishedFileId.txt does not match the author-selected existing Workshop item')
     about = ET.fromstring(files['About/About.xml'])
     manifest = ET.fromstring(files['About/Manifest.xml'])
     version = about.findtext('modVersion')
