@@ -15,7 +15,7 @@ import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
 
-from build_release import FILES, FOLDER, check_zip
+from build_release import FILES, FOLDER, EXPECTED_WORKSHOP_ID, check_zip
 
 ROOT = Path(__file__).resolve().parents[1]
 APPID = '294100'
@@ -76,6 +76,9 @@ def validate_zip_and_copy(zip_path: Path, checkout: Path, stage: Path) -> tuple[
             target.write_bytes(blob)
     preview = content / 'About/Preview.png'
     metadata = ET.fromstring((content / 'About/About.xml').read_bytes())
+    published_id = (content / 'About/PublishedFileId.txt').read_text(encoding='utf-8').strip()
+    if published_id != EXPECTED_WORKSHOP_ID:
+        raise ValueError('Staged PublishedFileId differs from the authorized existing item')
     if metadata.findtext('packageId') != 'sucro.cctoforvpe':
         raise ValueError('Wrong Mod packageId')
     if metadata.findtext('modVersion') != '0.1.0':
@@ -185,7 +188,11 @@ def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
     if not executable.is_file() or not os.access(executable, os.X_OK):
         raise ValueError('SteamCMD executable missing or not executable')
     check_state_path(state, checkout)
-    prev = load_published_id(state, create_new)
+    if create_new:
+        raise ValueError('Creation disabled: About/PublishedFileId.txt defines the existing Workshop item')
+    prev = load_published_id(state, create_new=False)
+    if prev != EXPECTED_WORKSHOP_ID:
+        raise ValueError('Publisher host Workshop ID differs from the author-selected existing item; refusing upload')
     original_zip_hash = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     # Temporary staging is never under the repo and is deleted after the invocation.
     with tempfile.TemporaryDirectory(prefix='ccto-vpe-steam-private-') as temp:
@@ -238,6 +245,8 @@ def main() -> int:
     parser.add_argument('--confirm', default='', help='Must equal PRIVATE_ONLY for actual uploads')
     parser.add_argument('--create-new', action='store_true', help='Explicit first-time creation, not update')
     args = parser.parse_args()
+    if args.create_new:
+        raise ValueError('Creation disabled: existing Workshop item ID is fixed in About/PublishedFileId.txt')
     if not args.execute:
         with tempfile.TemporaryDirectory() as tmp:
             content, preview, title, description, note = validate_zip_and_copy(
@@ -250,6 +259,7 @@ def main() -> int:
                 raise ValueError('Complete changenote was not staged')
             print('Offline PRIVATE SteamCMD VDF and exact source ZIP validation PASS; NO UPLOAD')
             print('Expected Workshop tags (Steamworks step required): ' + ', '.join(tags))
+            print('Existing target Workshop ID: ' + EXPECTED_WORKSHOP_ID + ' (creation disabled)')
         return 0
     steamcmd = os.environ.get('CCTO_STEAMCMD_BIN', '')
     account = os.environ.get('CCTO_STEAM_ACCOUNT', '')

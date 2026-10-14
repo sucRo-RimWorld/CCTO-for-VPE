@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'Scripts'))
-from build_release import FILES, FOLDER, check_preview, create_zip, validate
+from build_release import FILES, FOLDER, EXPECTED_WORKSHOP_ID, check_preview, create_zip, validate
 
 
 class ReleaseCandidateTests(unittest.TestCase):
@@ -27,7 +27,8 @@ class ReleaseCandidateTests(unittest.TestCase):
             check_preview(bytes(damaged))
 
     def test_exact_distribution_contents_reproducible(self):
-        self.assertEqual(len(FILES), 6)
+        self.assertEqual(len(FILES), 7)
+        self.assertEqual((ROOT / 'About/PublishedFileId.txt').read_text().strip(), EXPECTED_WORKSHOP_ID)
         self.assertEqual(set(validate(ROOT)), set(FILES))
         with tempfile.TemporaryDirectory() as tmp:
             first, second = Path(tmp)/'a.zip', Path(tmp)/'b.zip'
