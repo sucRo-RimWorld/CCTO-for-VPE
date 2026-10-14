@@ -13,6 +13,18 @@ Temperatures are gameplay estimates informed by plant cold-hardiness differences
 [b]Supported:[/b] All 20 plants in the VPE 1.6 basic set, including six VPE special-class plants.
 [b]Not yet supported:[/b] Separate VPE add-on packs such as More Plants, Mushrooms, Succulents and Flowers.
 
+[h2]Plants with custom behavior[/h2]
+[b]These six plants use VPE-specific code. Their temperature XML is implemented, but interactions with cold tolerance have not been tested in-game and may cause bugs or unexpected growth, dormancy or display behavior.[/b]
+[list]
+[*]Peas: rain-dependent growth bonus
+[*]Eggplant: temperature-dependent growth multipliers
+[*]Cabbage: growth stops during toxic fallout
+[*]Beet: custom winter growth logic
+[*]Cherry tree: winter blossom graphics
+[*]Orange tree: river-dependent growth bonus
+[/list]
+Please report unexpected behavior for these plants through GitHub Issues.
+
 [h2]Requirements[/h2]
 [list]
 [*]RimWorld 1.6
@@ -44,6 +56,18 @@ CCTOの耐寒性設定をVanilla Plants Expanded（VPE）の基本セットに�
 
 [b]対応済み:[/b] VPE 1.6基本セット20種（独自クラス6種を含む）。
 [b]未対応:[/b] More Plants・Mushrooms・Succulents・Flowersなどの独立したVPE追加パック。
+
+[h2]独自実装がある植物について[/h2]
+[b]以下の6種はVPE独自の処理を持つ。耐寒性XMLは実装済みだが、独自処理との組み合わせは実ゲーム未検証のため、不具合や想定外の成長・休眠・表示が起きる可能性がある。[/b]
+[list]
+[*]エンドウ豆：雨による成長ボーナス
+[*]ナス：温度に応じた独自の成長倍率
+[*]キャベツ：有毒降下物中の成長停止
+[*]ビート：冬季の独自成長処理
+[*]サクラ：冬季の開花表示
+[*]オレンジ：河川による成長ボーナス
+[/list]
+これらの植物で想定外の挙動があればGitHub Issuesへ報告してほしい。
 
 [h2]必須Mod[/h2]
 [list]

@@ -49,3 +49,9 @@ For an already existing item, first inspect its ownership/visibility and initial
 SteamCMD command success is *not* native RimWorld behavior PASS, public visibility evidence or downloaded-payload verification. **No actual Steam private upload is claimed until a host workflow produces an ID and the owner confirms item visibility.** Never add an automatic public-publish step. If the author later chooses public release, that is a separate authorized task, with Steam privacy/metadata inspection and a new policy review.
 
 References: [Steamworks Workshop implementation](https://partner.steamgames.com/doc/features/workshop/implementation) and [Steamworks visibility enum](https://partner.steamgames.com/doc/api/isteamremotestorage); `2` is Private, `0` is Public. Existing owner [ReleaseChecklist](ReleaseChecklist.md) remains authoritative for actual subscriber verification. The native-test host is a separate Project workstream and is **not** provisioned here.
+
+## Description newline contract and first private item evidence
+
+Workshop descriptions must retain real LF line breaks inside the quoted VDF value. Do not serialize description line breaks as the two characters `\n`: the first real SteamCMD upload displayed those characters literally. `vdf_quote` normalizes CRLF/CR to LF while preserving actual LF; quote/backslash escaping and private-only visibility remain enforced. The offline regression checks the complete approved bilingual description, not just a single-line fixture. Steam-side rendering still requires inspection after an update.
+
+The author confirmed a successful private upload on 2026-10-14 and reported literal `\\n` in the description. Actual corrected Steam description and downloaded subscriber payload remain unverified. Preserve the existing item when correcting formatting; do not create a replacement item.

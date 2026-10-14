@@ -37,6 +37,8 @@ PlantBalance.json owns added numerical decisions; [SixCustomClassBalance](Resear
 ## VPE-STEAMCMD-PRIVATE-PUBLISHER-20261013
 
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
-**Status:** PRIVATE-ONLY STEAMCMD WORKFLOW/SCRIPT + OFFLINE TESTS IMPLEMENTED; DEDICATED RUNNER/LOCAL STEAM AUTHENTICATION/UPLOAD NOT VERIFIED.
+**Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION NEWLINE FIX PENDING; SUBSCRIBER PAYLOAD NOT VERIFIED.
 
 The author accepted ChatGPT→GitHub Actions→isolated self-hosted SteamCMD as an optional path for **creating/updating a private Workshop item only**. Manual `workflow_dispatch` `preflight` runs source tests/payload verification without Steam; `upload_private` is guarded by exact `main` SHA and `PRIVATE_ONLY`, and requires dedicated runner label `steamcmd-private-publisher` and locally managed Steam session. AppID 294100, visibility `2`, persistent local PublishedFileId, no GitHub credentials, and no automatic public transition are enforced by `Scripts/steamcmd_private.py` and `.github/workflows/steam-private.yml`. Author must later provision host, perform first private upload and verify actual item visibility and subscriber ZIP. Formal owner runbook: `Docs/SteamCMDPrivatePublishing.md`; [ReleaseChecklist](ReleaseChecklist.md). Does not remove author waiver of optional VPE native-game tests or authorize other AMJ publisher deployments.
+
+2026-10-14: author confirmed private upload and private visibility, but reported literal `\\n` in the description. VDF serialization correction and bilingual six-custom-plant risk disclosure are prepared; actual corrected Steam description and downloaded payload remain pending. Formal procedure: `Docs/SteamCMDPrivatePublishing.md`. Intermittent GitHub DNS failures remain unresolved.

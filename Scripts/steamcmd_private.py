@@ -28,7 +28,9 @@ DESC_BYTE_LIMIT = 8000
 def vdf_quote(value: str) -> str:
     if any(ord(char) < 32 and char not in '\r\n\t' for char in value):
         raise ValueError('Control characters are not valid in a Workshop VDF')
-    return '"' + value.replace('\\', '\\\\').replace('"', '\\"').replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\\n').replace('\t', '\\t') + '"'
+    # SteamCMD preserves escaped newline text literally in Workshop descriptions.
+    # Keep real line breaks inside the quoted KeyValues value instead.
+    return '"' + value.replace('\\', '\\\\').replace('"', '\\"').replace('\r\n', '\n').replace('\r', '\n').replace('\t', '\\t') + '"'
 
 
 def validate_zip_and_copy(zip_path: Path, checkout: Path, stage: Path) -> tuple[Path, Path, str, str, str]:

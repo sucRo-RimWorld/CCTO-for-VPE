@@ -12,6 +12,9 @@ CCTOの耐寒性設定を、Vanilla Plants Expanded（VPE）の基本セット20
 ・VPE 1.6の基本セット20種（独自クラス6種を含む）。
 ・More Plants、Mushrooms、Succulents、Flowersなどの追加パックは未対応。
 
+・独自実装がある6種は耐寒性XMLを実装済みだが、独自処理との組み合わせは実ゲーム未検証で、不具合や想定外の成長・休眠・表示が起きる可能性がある。
+・対象：エンドウ豆（雨の成長ボーナス）、ナス（温度別成長倍率）、キャベツ（有毒降下物中の成長停止）、ビート（冬季成長）、サクラ（冬季開花表示）、オレンジ（河川の成長ボーナス）。
+
 ▼ 対応・互換性
 ・RimWorld 1.6専用。
 ・[Crop Cold Tolerance Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3812412548)と[Vanilla Plants Expanded](https://github.com/Vanilla-Expanded/VanillaPlantsExpanded)が必須。
