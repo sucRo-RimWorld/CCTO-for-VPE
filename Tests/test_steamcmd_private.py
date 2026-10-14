@@ -135,7 +135,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('-z "$CONFIRMATION"', authorization)
         self.assertIn('exit 2', authorization)
 
-        check = workflow.split('  runner_check:\n', 1)[1].split('  upload_private:\n', 1)[0]
+        check = workflow.split('  runner_check:\n', 1)[1].split('  publisher_state_check:\n', 1)[0]
         self.assertIn("if: ${{ inputs.mode == 'runner_check' }}", check)
         self.assertIn('needs: preflight', check)
         self.assertIn('runs-on: [self-hosted, linux, steamcmd-private-publisher]', check)
