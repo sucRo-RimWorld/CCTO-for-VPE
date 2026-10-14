@@ -56,6 +56,40 @@ that mention YADA as an ongoing uploader or initial new-item creation.
 - The preflight stores `Dist/sha256.txt` with a **filename relative to `Dist/`**. The publisher downloads the artifact into `Dist/`, changes into that directory, and runs `sha256sum -c sha256.txt` before SteamCMD. The publisher also independently compares ZIP bytes to the current approved main checkout. Never weaken either check to work around missing files.
 - [Failed first upload attempt #38422572626](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38422572626): preflight PASS, intermittent publisher DNS errors during checkout, then a deterministic `Dist/Dist/` checksum pathname failure. The SteamCMD upload step was **skipped**, so this run neither created nor updated a Steam item. Correct the checksum path and complete PR/main checks before a fresh, explicitly authorized `upload_private` dispatch. Keep the initial-create state gate; do not assume an item ID from a failed GitHub job.
 
+## WSL publisher-state diagnostic — read only, no Steam upload (2026-10-14)
+
+After the real Windows Steamworks probe passed on
+[Actions #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195),
+the remaining prerequisite for the first future **YADA-free** content update
+is to reconcile the **actual Linux publisher service's saved state**.
+
+Use Actions → `CCTO for VPE SteamCMD private upload` → Run workflow,
+branch `main`, `mode=publisher_state_check`,
+`exact_main_sha` = exact current main SHA, `create_new_item=false`,
+empty `confirmation`. It runs hosted source `preflight`, then the
+dedicated WSL `steamcmd-private-publisher` runner with the existing
+`steam-workshop-private` environment. The runner calls
+`python3 Scripts/steamcmd_private.py --check-host-state`. This mode
+needs **only the existing host-local** `CCTO_STEAM_STATE` variable;
+it does not need SteamCMD login, `CCTO_STEAM_ACCOUNT` or an interactive
+Steamworks session. It does **not** invoke SteamCMD, Steamworks, change the
+state file, or submit tags.
+
+PASS requires: saved JSON schema `1`, AppID `294100`, exact existing
+ID `3819497323`, operator-set `private_verified: true`, a non-symlink
+state file with permissions `0600` in a private `0700` parent
+directory outside checkout. The command **does not print the JSON, local
+path, account or credentials**. Missing/stale/mismatched state, insufficient
+permissions or `private_verified: false` cause FAIL/HOLD. Do not resolve
+a mismatch by inventing or overwriting `publishedfileid`, resetting
+permissions blindly, creating another item, or setting
+`private_verified` without the author's separate Steam-side
+ownership/private visibility check. A PASS only means that the
+**existing host-local guard** is ready to allow a future update; it
+does not independently prove Steam's current visibility or subscriber
+content. Actual content upload and tag-sync remain separately
+author-confirmed private-only operations.
+
 ## Publisher runner connectivity diagnostic (no Workshop upload)
 
 After repeated WSL host-only DNS failures in `actions/checkout@v4` and `actions/download-artifact@v4`, use the manual **`runner_check`** mode **before any further `upload_private` attempt**. It runs the already-approved `preflight` on GitHub-hosted Linux, then dispatches a *nonpublishing* job on the same labeled `steamcmd-private-publisher` self-hosted runner and `steam-workshop-private` environment as the upload job. On that host, the job checks out the pinned current `main`, downloads the preflight artifact and verifies `Dist/sha256.txt` from inside `Dist/`.
