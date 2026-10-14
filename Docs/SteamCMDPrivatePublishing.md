@@ -87,3 +87,31 @@ The current private-upload action remains unchanged: metadata correction or
 Steamworks integration must never bypass its author approval, ownership,
 existing item ID, and private-only gates. No new Steamworks credentials or
 desktop Steam installation are provisioned by this source change.
+
+
+## Existing item identity lock — 2026-10-14
+
+The author designated **Workshop 3819497323** as the item currently retained
+for CCTO for VPE. A YADA upload created a *different* Workshop item; that
+duplicate item's ID and creator-side history are not yet independently audited.
+Do **not** delete any Workshop item merely by inference.
+
+- The canonical repository `About/PublishedFileId.txt` now contains
+  `3819497323` followed by LF; the local **installed** Mod folder used by
+  YADA must contain the same file. Merely updating GitHub does not copy the
+  file into the user's installed RimWorld Mods folder.
+- `Scripts/build_release.py` validates and includes this file in the new
+  seven-file release candidate. `Scripts/steamcmd_private.py` rejects host
+  state with any different `publishedfileid`, even if private_verified;
+  it also refuses `--create-new`. SteamCMD may update only this existing ID.
+- The previously supported *initial creation* procedure above was applicable
+  to the original pre-item phase only; it is **disabled** now that the
+  author selected an existing item. `create_new_item` must remain false.
+- The persistent host state (`CCTO_STEAM_STATE`) is **not readable from
+  GitHub**. Do not silently overwrite it, set `private_verified=true`,
+  or use a guessed ID. First reconcile the host's saved ID and actual item
+  ownership/visibility; mismatches must fail closed.
+- The Steam page could not be independently retrieved using unauthenticated
+  public access in this task. The owner's designated item identity is a user
+  instruction; live private visibility, remote changelog, Workshop tags and
+  subscribed payload remain separately unverified.
