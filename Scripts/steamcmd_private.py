@@ -33,6 +33,34 @@ def vdf_quote(value: str) -> str:
     return '"' + value.replace('\\', '\\\\').replace('"', '\\"').replace('\r\n', '\n').replace('\r', '\n').replace('\t', '\\t') + '"'
 
 
+def current_changenote(changelog: str, version: str) -> str:
+    """Get exactly the current version's complete change-note block, not just its title."""
+    heading = re.compile(r'^(\d+(?:\.\d+){1,3})\s+-\s+\S')
+    lines = changelog.splitlines()
+    matches = [(i, match.group(1)) for i, line in enumerate(lines)
+               if (match := heading.match(line))]
+    positions = [index for index, found_version in matches if found_version == version]
+    if len(positions) != 1:
+        raise ValueError('Expected exactly one current-version changelog heading')
+    start = positions[0]
+    stop = next((index for index, _ in matches if index > start), len(lines))
+    selected = [line for line in lines[start:stop] if not line.startswith('#')]
+    result = '\n'.join(selected).strip()
+    if not result or len(result.splitlines()) < 2 or not result.splitlines()[1].strip():
+        raise ValueError('Current-version changelog has no body')
+    return result
+
+
+def workshop_tags(metadata: ET.Element) -> tuple[str, ...]:
+    """Expected Steamworks tags; SteamCMD VDF does not reliably submit them."""
+    versions = [(node.text or '').strip() for node in metadata.findall('./supportedVersions/li')]
+    if not versions or len(set(versions)) != len(versions):
+        raise ValueError('Missing or duplicated supported RimWorld versions')
+    if any(not re.fullmatch(r'1\.\d+', version) for version in versions):
+        raise ValueError('Invalid supported RimWorld version for Workshop tags')
+    return ('Mod', *versions)
+
+
 def validate_zip_and_copy(zip_path: Path, checkout: Path, stage: Path) -> tuple[Path, Path, str, str, str]:
     """Compare all ZIP bytes against the exact checked-out release sources."""
     check_zip(zip_path)
@@ -61,9 +89,11 @@ def validate_zip_and_copy(zip_path: Path, checkout: Path, stage: Path) -> tuple[
     if not (1 <= len(description.encode('utf-8')) <= DESC_BYTE_LIMIT):
         raise ValueError('Workshop description exceeds Steam length constraint')
     changelog = (content / 'About/Changelog.txt').read_text(encoding='utf-8')
-    note = next((s.strip() for s in changelog.splitlines() if s.startswith('0.1.0 - ')), '')
-    if not note:
-        raise ValueError('No current version changelog')
+    version = metadata.findtext('modVersion') or ''
+    if not version:
+        raise ValueError('Missing current Mod version')
+    workshop_tags(metadata)
+    note = current_changenote(changelog, version)
     return content, preview, title, description, note
 
 
@@ -193,6 +223,9 @@ def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
         if prev != '0' and after != prev:
             raise RuntimeError('SteamCMD changed an existing Workshop item ID unexpectedly')
         print('SteamCMD accepted private-only upload request for Workshop ID ' + after)
+        print('SteamCMD changenote submitted (full current-version block); Steam history NOT VERIFIED')
+        print('Workshop tags NOT UPDATED by SteamCMD: Steamworks metadata sync is required ('
+              + ', '.join(workshop_tags(ET.fromstring((content / 'About/About.xml').read_bytes()))) + ')')
         print('Steam-side visibility and downloaded subscriber contents: NOT VERIFIED; author review required')
         return after
 
@@ -212,7 +245,11 @@ def main() -> int:
             raw = make_vdf(content, preview, title, description, note, '0')
             if '"visibility" "2"' not in raw:
                 raise ValueError('Private visibility guard did not survive VDF generation')
+            tags = workshop_tags(ET.fromstring((content / 'About/About.xml').read_bytes()))
+            if note not in raw:
+                raise ValueError('Complete changenote was not staged')
             print('Offline PRIVATE SteamCMD VDF and exact source ZIP validation PASS; NO UPLOAD')
+            print('Expected Workshop tags (Steamworks step required): ' + ', '.join(tags))
         return 0
     steamcmd = os.environ.get('CCTO_STEAMCMD_BIN', '')
     account = os.environ.get('CCTO_STEAM_ACCOUNT', '')
