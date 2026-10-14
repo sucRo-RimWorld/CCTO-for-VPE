@@ -19,10 +19,16 @@ class OptionalAddonScopeContract(unittest.TestCase):
             {"more-plants", "mushrooms", "succulents", "flowers"},
         )
         self.assertEqual(len(entries), len({x["slug"] for x in entries}))
+        verified_ids = {
+            "more-plants": "VanillaExpanded.VPlantsEMore",
+            "mushrooms": "VanillaExpanded.VPlantsEMushrooms",
+            "succulents": "VanillaExpanded.VPlantsESucculents",
+            "flowers": "VanillaExpanded.VPEFlowers",
+        }
         for item in entries:
             self.assertEqual(item["status"], "candidate_not_implemented")
             self.assertIsNone(item["patch"])
-            self.assertIsNone(item["package_id"])
+            self.assertEqual(item["package_id"], verified_ids[item["slug"]])
             self.assertEqual(item["source_target_version"], "1.6")
             self.assertRegex(item["inspected_main_commit"], r"^[0-9a-f]{40}$")
             self.assertTrue(item["github_repository"].startswith("Vanilla-Expanded/"))

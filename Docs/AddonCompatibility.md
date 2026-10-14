@@ -2,9 +2,16 @@
 
 **Authority:** `Docs/Design.md §8`; implementation tracking [issue #8](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/8). `Docs/AddonInventory.json` is the candidate inventory. **No optional pack compatibility XML is implemented or shipped yet.**
 
+## Approved work order (2026-10-15)
+
+1. Complete **More Plants for RimWorld 1.6**. An initial pinned 1.6 XML-only 51-Def candidate inventory is in `Docs/Research/MorePlantsSourceInventory.md`; this is not a balance approval, executable patch or native verification.
+2. **When RimWorld 1.7 is the main game version**, verify CCTO for VPE compatibility with the actual 1.7 providers and update supportedVersions/loader/public copy only on evidence. Upstream VPE and these four child-pack About files already mention 1.7; that alone does not qualify our addon.
+3. **Mushrooms** follows the 1.7 update. If RimWorld 1.7 has not become main after More Plants completes, work on **Mushrooms 1.6** instead until that condition is met.
+4. **Flowers**, then **Succulents**; revisit based on concrete incompatibilities or adoption evidence.
+
 ## Current and future layout
 
-The single CCTO for VPE addon owns the VPE core and eligible VPE plant-provider add-ons; CCTO base owns Vanilla/MO and the C# framework. Only VPE 1.6 is source-inspected.
+The single CCTO for VPE addon owns the VPE core and eligible VPE plant-provider add-ons; CCTO base owns Vanilla/MO and the C# framework. **The implementation and plant semantics are source-verified only for VPE 1.6**, although upstream About metadata now lists 1.7; neither this addon nor any optional pack is verified here under 1.7.
 
 - **Implemented core:** `Patches/ColdTolerance.xml` and `Docs/PlantBalance.json` cover exactly **20** base VPE plants (14 normal, six custom-class); no optional pack rows in this source.
 - **Runtime loader:** `LoadFolders.xml` contains a `<v1.6>` stanza with `<li>/</li>`, which must remain unconditional to load core `Patches/`. No current candidate has an `IfModActive` entry.
