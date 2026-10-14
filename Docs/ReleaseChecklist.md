@@ -65,9 +65,17 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
   app ID 294100, logged-on Steamworks probe, no implicit creation/public
   visibility change, local `PENDING` submission intent, and no repeat
   submission after a local successful receipt.
+- [x] Windows PowerShell 7 host launcher added for pinned upstream agent build,
+  RimWorld Steam API discovery, Steam-session-only probe and interactive
+  GitHub runner startup; source/tests only, no host execution yet.
+- [x] Nonpublishing `tag_runner_check` manual action added. Post-upload tag
+  refresh now tracks the successful GitHub workflow run ID, preventing an
+  earlier successful tag-only receipt from suppressing a new upload refresh.
 - [ ] Provision a dedicated Windows interactive desktop-Steam runner,
   pinned reviewed SteamWorkshopAgent build, Steam-native DLL override,
   user-private receipt path and actual Steam session.
+- [ ] Run `tag_runner_check` against the exact main SHA from the logged-in
+  Steam Windows session; record probe status and native-library fingerprint.
 - [ ] Verify on the private Steam item that `SetItemTags` succeeded and
   current tags are visible; local callback success is not remote read-back.
 - [ ] After a real SteamCMD update, verify both the complete changenote
