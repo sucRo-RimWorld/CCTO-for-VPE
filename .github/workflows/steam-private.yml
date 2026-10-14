@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'preflight = offline only; runner_check = self-hosted connectivity only; upload_private = SteamCMD'
+        description: 'preflight / runner_check / upload_private / sync_tags_private'
         required: true
         type: choice
         default: preflight
@@ -11,6 +11,7 @@ on:
           - preflight
           - runner_check
           - upload_private
+          - sync_tags_private
       exact_main_sha:
         description: 'Exactly 40 hex chars of the approved current main HEAD'
         type: string
@@ -21,7 +22,7 @@ on:
         default: false
         required: true
       confirmation:
-        description: 'For upload_private type PRIVATE_ONLY; preflight does not upload'
+        description: 'PRIVATE_ONLY for upload_private; TAGS_PRIVATE_ONLY for sync_tags_private'
         type: string
         required: false
 permissions:
@@ -49,6 +50,8 @@ jobs:
           if [[ "$REQUESTED_MODE" == 'upload_private' ]]; then
             [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
             # Creation disabled: update the author-selected existing Workshop item only.
+          elif [[ "$REQUESTED_MODE" == 'sync_tags_private' ]]; then
+            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
           elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' ]]; then
             [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
@@ -78,6 +81,7 @@ jobs:
         run: |
           python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
           python Scripts/steamcmd_private.py --zip Dist/CCTO-for-VPE-0.1.0.zip
+          python Scripts/steamworks_tags.py
           # Hash entries are relative to Dist; upload_private verifies after cd Dist.
           (cd Dist && sha256sum CCTO-for-VPE-0.1.0.zip > sha256.txt && sha256sum -c sha256.txt)
       - name: Retain candidate for publisher job and auditing
@@ -147,3 +151,41 @@ jobs:
           python3 Scripts/steamcmd_private.py \
             --zip Dist/CCTO-for-VPE-0.1.0.zip \
             --execute --confirm "$CONFIRMATION"
+
+  sync_tags:
+    needs: [preflight, upload_private]
+    # Supports an explicit tag-only repair and automatically runs after a
+    # successful manual SteamCMD update. If the desktop Steam runner is not
+    # configured, this job cannot run; NEVER consider upload fully synced.
+    if: ${{ always() && needs.preflight.result == 'success' && (inputs.mode == 'sync_tags_private' || (inputs.mode == 'upload_private' && needs.upload_private.result == 'success')) }}
+    runs-on: [self-hosted, linux, steamworks-tag-publisher]
+    environment: steam-workshop-private
+    timeout-minutes: 12
+    steps:
+      - name: Check out approved main (no checkout credentials retained)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recheck SHA and existing Workshop identity
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SHA" == "$EXPECTED_SHA" ]] || exit 2
+          python3 Scripts/steamworks_tags.py
+      - name: Apply tags through authenticated desktop Steamworks
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          if [[ "$MODE" == 'sync_tags_private' ]]; then
+            [[ "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
+          else
+            [[ "$MODE" == 'upload_private' && "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
+          fi
+          # CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT must
+          # be configured LOCALLY on this dedicated desktop-Steam runner.
+          python3 Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
