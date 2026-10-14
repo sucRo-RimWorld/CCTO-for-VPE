@@ -55,3 +55,35 @@ References: [Steamworks Workshop implementation](https://partner.steamgames.com/
 Workshop descriptions must retain real LF line breaks inside the quoted VDF value. Do not serialize description line breaks as the two characters `\n`: the first real SteamCMD upload displayed those characters literally. `vdf_quote` normalizes CRLF/CR to LF while preserving actual LF; quote/backslash escaping and private-only visibility remain enforced. The offline regression checks the complete approved bilingual description, not just a single-line fixture. Steam-side rendering still requires inspection after an update.
 
 The author confirmed a successful private upload on 2026-10-14 and reported literal `\\n` in the description. Actual corrected Steam description and downloaded subscriber payload remain unverified. Preserve the existing item when correcting formatting; do not create a replacement item.
+
+
+## Workshop version tags and complete changenotes (2026-10-14 source audit)
+
+The original SteamCMD uploader reads `About/About.xml` for the title and
+`About/Changelog.txt` for a `changenote`, but does **not** set Workshop
+category/version tags. Unlike RimWorld's own upload path, SteamCMD does not
+automatically turn `<supportedVersions>` into Workshop tags. Do not add a
+nonfunctional `tags` field to the VDF and declare success. SteamCMD tag
+submission is not a reliable supported path; use a properly authenticated
+Steamworks `SetItemTags` call (with `Mod` plus all current
+`About/About.xml` `supportedVersions`) or have the author set tags in
+the Steam Workshop UI. The existing WSL SteamCMD session alone does not
+establish a working desktop-Steam Steamworks session. A separate, safely
+provisioned Steamworks metadata adapter is required for automation.
+
+`Scripts/steamcmd_private.py` now validates the supported-version list,
+reports the **expected** Workshop tags during offline preflight, and extracts
+the *complete current-version changenote block* (not just the heading) from
+`About/Changelog.txt`. This full note is supplied to SteamCMD's documented
+`changenote` VDF field. Its presence in the generated VDF is source-only
+evidence. SteamCMD success cannot prove that Steam created a change-note
+history entry; creation of a first item may have different behavior from
+updating an existing item. Verify the Steam Change Notes tab after a real
+private update. Existing historical entries cannot be rewritten by changing
+the file in GitHub; a later Steamworks `SubmitItemUpdate` may create a
+*new* changenote entry instead.
+
+The current private-upload action remains unchanged: metadata correction or
+Steamworks integration must never bypass its author approval, ownership,
+existing item ID, and private-only gates. No new Steamworks credentials or
+desktop Steam installation are provisioned by this source change.

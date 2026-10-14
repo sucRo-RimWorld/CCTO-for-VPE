@@ -13,11 +13,48 @@ sys.path.insert(0, str(ROOT / 'Scripts'))
 from build_release import create_zip, FILES, FOLDER
 from steamcmd_private import (
     APPID, VISIBILITY, check_state_path, load_published_id,
-    make_vdf, read_updated_id, run_upload, validate_zip_and_copy, vdf_quote,
+    current_changenote, make_vdf, read_updated_id, run_upload,
+    validate_zip_and_copy, vdf_quote, workshop_tags,
 )
 
 
 class SteamCMDPrivateContract(unittest.TestCase):
+    def test_current_changenote_includes_body_and_stops_before_old_versions(self):
+        changelog = ('# ignored comment\n'
+                     '0.2.0 - New compatibility\n'
+                     '- English details\n'
+                     '- 日本語の詳細\n'
+                     '\n'
+                     '0.1.0 - Previous release\n'
+                     '- old details\n')
+        note = current_changenote(changelog, '0.2.0')
+        self.assertEqual(note, '0.2.0 - New compatibility\n'
+                               '- English details\n- 日本語の詳細')
+        self.assertNotIn('Previous release', note)
+        self.assertIn('old details', current_changenote(changelog, '0.1.0'))
+        with self.assertRaisesRegex(ValueError, 'exactly one'):
+            current_changenote(changelog, '0.3.0')
+        with self.assertRaisesRegex(ValueError, 'exactly one'):
+            current_changenote(changelog + '\n0.1.0 - Duplicate\n- more\n', '0.1.0')
+        with self.assertRaisesRegex(ValueError, 'no body'):
+            current_changenote('0.3.0 - Header only\n', '0.3.0')
+
+    def test_expected_workshop_tags_follow_about_xml(self):
+        from xml.etree import ElementTree as ET
+        about = ET.fromstring((ROOT / 'About/About.xml').read_bytes())
+        expected = [x.text for x in about.findall('./supportedVersions/li')]
+        self.assertEqual(workshop_tags(about), ('Mod', *expected))
+        fake = ET.fromstring('<ModMetaData><supportedVersions><li>1.6</li>'
+                             '<li>1.7</li></supportedVersions></ModMetaData>')
+        self.assertEqual(workshop_tags(fake), ('Mod', '1.6', '1.7'))
+        for bad in ('<ModMetaData/>',
+                    '<ModMetaData><supportedVersions><li>1.6</li>'
+                    '<li>1.6</li></supportedVersions></ModMetaData>',
+                    '<ModMetaData><supportedVersions><li>garbage</li>'
+                    '</supportedVersions></ModMetaData>'):
+            with self.assertRaises(ValueError):
+                workshop_tags(ET.fromstring(bad))
+
     def test_private_only_and_keyvalues_escaping(self):
         raw = make_vdf(Path('/tmp/Example'), Path('/tmp/Example/About/Preview.png'),
                        'Safe title', 'First line\nSecond "quoted" line', '0.1.0 - First', '0')
@@ -168,6 +205,9 @@ class SteamCMDPrivateContract(unittest.TestCase):
                 self.assertIn('CCTO for VPE', title)
                 self.assertIn('20 VPE core plants', desc)
                 self.assertTrue(change.startswith('0.1.0 - '))
+                self.assertIn('- Added growth temperature', change)
+                self.assertIn('- 実ゲーム未検証。', change)
+                self.assertGreaterEqual(len(change.splitlines()), 4)
             evil = Path(tmp) / 'changed.zip'
             with zipfile.ZipFile(z) as source, zipfile.ZipFile(evil, 'w') as output:
                 for filename in source.namelist():
