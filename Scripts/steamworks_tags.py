@@ -41,10 +41,19 @@ def receipt_path_ok(path: Path, checkout: Path) -> Path:
     path = path.expanduser().resolve()
     if checkout.resolve() == path or checkout.resolve() in path.parents:
         raise ValueError('Receipt must be outside the GitHub checkout')
-    if path.exists() and (not path.is_file() or stat.S_IMODE(path.stat().st_mode) & 0o077):
-        raise ValueError('Receipt must be a private 0600 file')
-    if path.parent.exists() and stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
-        raise ValueError('Receipt parent must be a private 0700 directory')
+    if os.name == 'nt':
+        # Windows does not implement POSIX 0600 semantics. Confine host-only
+        # receipts to the signed-in user's profile and its NTFS ACLs.
+        root = os.environ.get('LOCALAPPDATA')
+        if not root or not path.is_relative_to(Path(root).resolve()):
+            raise ValueError('Windows receipt must be under the Steam runner LOCALAPPDATA')
+        if path.exists() and not path.is_file():
+            raise ValueError('Receipt must be a regular file')
+    else:
+        if path.exists() and (not path.is_file() or stat.S_IMODE(path.stat().st_mode) & 0o077):
+            raise ValueError('Receipt must be a private 0600 file')
+        if path.parent.exists() and stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
+            raise ValueError('Receipt parent must be a private 0700 directory')
     return path
 
 
@@ -73,18 +82,19 @@ def _receipt_matches(path: Path, tags: tuple[str, ...]) -> bool:
         obj = json.loads(path.read_text(encoding='utf-8'))
     except (json.JSONDecodeError, UnicodeError):
         raise ValueError('Invalid publisher receipt; stop instead of retrying an ambiguous update')
+    if (obj.get('schema') != 1 or obj.get('publishedfileid') != EXPECTED_WORKSHOP_ID
+            or obj.get('appid') != APPID):
+        raise ValueError('Receipt identity mismatch; do not overwrite existing state')
     if obj.get('steamworks_submit_result') == 'PENDING':
         raise ValueError('Prior tag submission may have started; verify Steam before any retry')
-    return (obj.get('schema') == 1
-            and obj.get('publishedfileid') == EXPECTED_WORKSHOP_ID
-            and obj.get('appid') == APPID
-            and obj.get('tags') == list(tags)
-            and obj.get('steamworks_submit_result') == 'OK')
+    if obj.get('steamworks_submit_result') != 'OK':
+        raise ValueError('Invalid Steamworks receipt status')
+    return obj.get('tags') == list(tags)
 
 
 def _store_receipt(path: Path, tags: tuple[str, ...], result: str = 'OK') -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
+    if os.name != 'nt' and stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
         raise ValueError('Receipt parent must be private')
     obj = {
         'schema': 1, 'publishedfileid': EXPECTED_WORKSHOP_ID,
