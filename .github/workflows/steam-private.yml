@@ -3,12 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'preflight validates only; upload_private requires isolated SteamCMD runner'
+        description: 'preflight = offline only; runner_check = self-hosted connectivity only; upload_private = SteamCMD'
         required: true
         type: choice
         default: preflight
         options:
           - preflight
+          - runner_check
           - upload_private
       exact_main_sha:
         description: 'Exactly 40 hex chars of the approved current main HEAD'
@@ -47,8 +48,10 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]] || exit 2
           if [[ "$REQUESTED_MODE" == 'upload_private' ]]; then
             [[ "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
+          elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' ]]; then
+            [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
-            [[ "$REQUESTED_MODE" == 'preflight' && "$CREATE_NEW" == 'false' ]] || exit 2
+            exit 2
           fi
       - uses: actions/checkout@v4
         with:
@@ -85,6 +88,30 @@ jobs:
             Dist/sha256.txt
           if-no-files-found: error
           retention-days: 7
+  runner_check:
+    needs: preflight
+    if: ${{ inputs.mode == 'runner_check' }}
+    # Same dedicated host and GitHub environment as upload_private, but no SteamCMD invocation.
+    runs-on: [self-hosted, linux, steamcmd-private-publisher]
+    environment: steam-workshop-private
+    timeout-minutes: 12
+    steps:
+      - name: Check out approved main on publisher runner
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download preflight candidate on publisher runner
+        uses: actions/download-artifact@v4
+        with:
+          name: ccto-for-vpe-0.1.0-private-candidate
+          path: Dist
+      - name: Verify downloaded artifact checksum without invoking SteamCMD
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd Dist
+          sha256sum -c sha256.txt
+
   upload_private:
     needs: preflight
     if: ${{ inputs.mode == 'upload_private' }}

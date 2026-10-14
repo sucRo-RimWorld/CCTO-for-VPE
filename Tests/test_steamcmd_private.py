@@ -46,6 +46,38 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('PRIVATE_ONLY', workflow)
         self.assertNotIn('upload_public', workflow)
 
+
+    def test_publisher_runner_check_is_nonpublishing_and_sha_pinned(self):
+        """Only a main SHA-pinned manual dispatch can check the publisher host."""
+        workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
+        self.assertIn('          - runner_check', workflow)
+        self.assertIn('default: preflight', workflow)
+        authorization = workflow.split('      - name: Verify manual default-branch authorization', 1)[1].split(
+            '      - uses: actions/checkout@v4', 1)[0]
+        self.assertIn('refs/heads/main', authorization)
+        self.assertIn('"$EXPECTED_SHA" == "$GITHUB_SHA"', authorization)
+        self.assertIn('"$REQUESTED_MODE" == \'runner_check\'', authorization)
+        self.assertIn('"$CREATE_NEW" == \'false\'', authorization)
+        self.assertIn('-z "$CONFIRMATION"', authorization)
+        self.assertIn('exit 2', authorization)
+
+        check = workflow.split('  runner_check:\n', 1)[1].split('  upload_private:\n', 1)[0]
+        self.assertIn("if: ${{ inputs.mode == 'runner_check' }}", check)
+        self.assertIn('needs: preflight', check)
+        self.assertIn('runs-on: [self-hosted, linux, steamcmd-private-publisher]', check)
+        self.assertIn('environment: steam-workshop-private', check)
+        self.assertIn('uses: actions/checkout@v4', check)
+        self.assertIn('persist-credentials: false', check)
+        self.assertIn('uses: actions/download-artifact@v4', check)
+        self.assertIn('name: ccto-for-vpe-0.1.0-private-candidate', check)
+        self.assertIn('path: Dist', check)
+        self.assertIn('cd Dist', check)
+        self.assertIn('sha256sum -c sha256.txt', check)
+        for forbidden in ('steamcmd_private.py', 'workshop_build_item',
+                          'CCTO_STEAM_ACCOUNT', 'CCTO_STEAMCMD_BIN',
+                          'CCTO_STEAM_STATE', '--execute', 'CREATE_NEW:'):
+            self.assertNotIn(forbidden, check)
+
     def test_workflow_zip_digest_is_relative_to_artifact_root(self):
         """The uploaded sha256.txt must verify after download into Dist/."""
         import hashlib
