@@ -82,3 +82,17 @@ state reconciliation, live Steamworks tag update, Steam-side read-back
 and first subsequent YADA-free content upload remain unverified.
 Canonical operational source `Docs/SteamCMDPrivatePublishing.md`;
 open deployment checks issue #23.
+
+2026-10-14 WSL publisher host-state diagnostic workstream:
+A new manual, read-only `publisher_state_check` action is being
+integrated in the owning publisher workflow. It validates actual WSL
+`CCTO_STEAM_STATE` schema, app 294100, retained Workshop ID
+3819497323, `private_verified` and secure 0600/0700 file/directory
+permissions; it runs **no SteamCMD, tags, state writes or publication**.
+When integrated, it must still be executed on the actual author WSL
+publisher before any later private upload; offline/source validation is
+not host PASS and the checked flag is not Steam-side proof.
+Author-confirmed historical YADA tag reflection remains unchanged;
+Windows Steamworks `tag_runner_check` actual PASS recorded in
+[run #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195).
+Formal diagnostic procedure: `Docs/SteamCMDPrivatePublishing.md`.

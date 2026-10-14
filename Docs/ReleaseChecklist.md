@@ -15,16 +15,16 @@
 
 - [x] A GitHub manual-only SteamCMD `preflight`/conditional `upload_private` workflow is implemented for **CCTO for VPE only**. The uploader hardcodes AppID `294100`, visibility `2` (creator-only), source/payload byte matching, existing-ID persistence and refusal of unconfirmed new item creation. See [SteamCMDPrivatePublishing](SteamCMDPrivatePublishing.md). Source-level tests use a mock SteamCMD, not real Steam.
 - [ ] Provision/verify a **dedicated publisher** self-hosted runner with label `steamcmd-private-publisher`, secure local SteamCMD installation and separately authenticated Steam account; configure `steam-workshop-private` GitHub environment/review protections. This is independent of the Project native RimWorld testing host. No password, Steam Guard code or Steam token may be stored in GitHub.
-- [ ] Run a **manual** `preflight` against an exact current main commit; only then, with private author authorization, run `upload_private` (first item requires `create_new_item=true` and `PRIVATE_ONLY`; updates require the saved ID and private verification).
-- [ ] Confirm successful SteamCMD creation/update, preserve real PublishedFileId in the isolated runner, and **verify as creator** that the Workshop item is actually private and the subscribed payload matches the six authorized files. CI/SteamCMD success alone does not prove visibility or subscriber content.
+- [ ] Run a **manual** `preflight` against an exact current main commit; only then, with private author authorization, run `upload_private` (only updates to existing item `3819497323` are permitted; `create_new_item=false`, saved host ID/private verification and `PRIVATE_ONLY` are mandatory).
+- [ ] Confirm successful SteamCMD creation/update, preserve real PublishedFileId in the isolated runner, and **verify as creator** that the Workshop item is actually private and the subscribed payload matches the seven currently authorized files. CI/SteamCMD success alone does not prove visibility or subscriber content.
 - [ ] Keep the actual item private until the author separately directs any public switch. No automated public upload or publicity transition is implemented.
 
 ## Actual distribution gates — author controlled
 
 - [x] PR #13 merged release candidate ZIP is produced by `Scripts/build_release.py` and checked by `Tests/test_release_candidate.py`: exactly `About/About.xml`, `About/Manifest.xml`, `About/Changelog.txt`, `About/Preview.png`, `Patches/ColdTolerance.xml`, `LICENSE`. No `Docs/`, `Scripts/`, `Tests/`, copied provider DLL or child-pack XML. Both source and preview PNG SHA-256 match the author-approved `Docs/ApprovedPreview.json`.
-- [ ] Before publishing, verify the final installed Mod folder used by the Steam publisher contains the same six reviewed subscriber files (including the approved preview). Check after any copying/deployment changes.
+- [ ] Before publishing, verify the final installed Mod folder used by the Steam publisher contains the seven approved subscriber files (including the approved preview). Check after any copying/deployment changes.
 - [x] Prepared English/Japanese Workshop and Japanese 2game descriptions explicitly state: **not independently tested in a running game; user bug reports welcomed**. Include the [bug-report link](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose).
-- [x] Initial 0.1.0 About/Manifest/Changelog source synchronized; Workshop and 2game EN/JA drafts, including save uncertainty, prepared. Author-controlled Steam upload/visibility and 2game site posting remain unperformed. **A passing source/ZIP CI does not mean the Mod is distributed.**
+- [x] Initial 0.1.0 About/Manifest/Changelog source synchronized; Workshop and 2game EN/JA drafts, including save uncertainty, prepared. Actual later Steam-side visibility and subscriber payload remain separately unverified; 2game posting evidence is separate. **A passing source/ZIP CI does not mean the Mod is distributed.**
 - [ ] After manual Steam upload, independently verify the actual published subscriber payload; do not infer upload/download success from source CI.
 
 ## Post-distribution (not a prerequisite to source integration)
@@ -49,6 +49,14 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
 - [x] Author confirms YADA was used for the latest upload only, with
   version tags reflected; **YADA is retired for future publishing**. No
   future local-YADA deployment synchronization is required.
+- [x] Read-only WSL publisher-state diagnostic `mode=publisher_state_check`
+  implemented with exact main SHA, dedicated Linux publisher runner,
+  private GitHub environment, local JSON/permissions/ID/private-flag checks,
+  and zero Steam upload/tag calls; mocked offline regression tests guard
+  identity mismatches and forbidden upload flags.
+- [ ] Run `publisher_state_check` on the **actual WSL host** and record
+  result before the next `upload_private`. A static CI PASS is NOT an
+  actual host-state PASS.
 - [ ] For future GitHub Actions updates, reconcile the actual WSL
   SteamCMD publisher state `CCTO_STEAM_STATE` with item `3819497323`,
   Steam creator identity and private visibility. Do not overwrite an

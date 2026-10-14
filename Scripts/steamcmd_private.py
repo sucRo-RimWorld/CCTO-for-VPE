@@ -146,6 +146,8 @@ def load_published_id(state: Path, create_new: bool) -> str:
     if create_new:
         raise ValueError('An item ID is already saved; refusing to create a duplicate')
     obj = json.loads(state.read_text(encoding='utf-8'))
+    if not isinstance(obj, dict):
+        raise ValueError('Unexpected Steam state document type')
     if obj.get('schema_version') != STATE_SCHEMA or obj.get('appid') != APPID:
         raise ValueError('Unexpected Steam state schema or appid')
     existing_id = obj.get('publishedfileid')
@@ -154,6 +156,18 @@ def load_published_id(state: Path, create_new: bool) -> str:
     if obj.get('private_verified') is not True:
         raise ValueError('Operator must confirm the existing Steam item is PRIVATE before updating')
     return existing_id
+
+
+def check_existing_host_state(state: Path, checkout: Path) -> None:
+    """Read-only, fail-closed host gate; never edits state or contacts Steam."""
+    check_state_path(state, checkout)
+    saved_id = load_published_id(state, create_new=False)
+    if saved_id != EXPECTED_WORKSHOP_ID:
+        raise ValueError('Publisher host Workshop ID differs from retained item; no upload permitted')
+    print('HOST STATE CHECK PASS: saved AppID, retained Workshop ID, file permissions, '
+          'and operator private_verified flag')
+    print('Workshop item ' + EXPECTED_WORKSHOP_ID
+          + ': HOST FLAG ONLY; actual Steam-side owner/visibility/content NOT VERIFIED')
 
 
 def store_state(path: Path, published_id: str, source_hash: str) -> None:
@@ -239,12 +253,24 @@ def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--zip', required=True, type=Path)
+    parser.add_argument('--zip', type=Path)
+    parser.add_argument('--check-host-state', action='store_true',
+                        help='Read-only publisher state check; no ZIP, login or upload')
     parser.add_argument('--checkout', type=Path, default=ROOT)
     parser.add_argument('--execute', action='store_true', help='Actually contact Steam; no implicit upload')
     parser.add_argument('--confirm', default='', help='Must equal PRIVATE_ONLY for actual uploads')
     parser.add_argument('--create-new', action='store_true', help='Explicit first-time creation, not update')
     args = parser.parse_args()
+    if args.check_host_state:
+        if args.execute or args.create_new or args.confirm or args.zip is not None:
+            parser.error('--check-host-state is read-only and accepts no upload options')
+        saved = os.environ.get('CCTO_STEAM_STATE', '')
+        if not saved:
+            parser.error('CCTO_STEAM_STATE is not configured in the trusted publisher runner')
+        check_existing_host_state(Path(saved), args.checkout)
+        return 0
+    if args.zip is None:
+        parser.error('--zip is required for ZIP preflight or real uploads')
     if args.create_new:
         raise ValueError('Creation disabled: existing Workshop item ID is fixed in About/PublishedFileId.txt')
     if not args.execute:

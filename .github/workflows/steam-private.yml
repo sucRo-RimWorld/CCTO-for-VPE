@@ -3,13 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'preflight / runner_check / tag_runner_check / upload_private / sync_tags_private'
+        description: 'preflight / runner_check / publisher_state_check / tag_runner_check / upload_private / sync_tags_private'
         required: true
         type: choice
         default: preflight
         options:
           - preflight
           - runner_check
+          - publisher_state_check
           - tag_runner_check
           - upload_private
           - sync_tags_private
@@ -53,7 +54,7 @@ jobs:
             # Creation disabled: update the author-selected existing Workshop item only.
           elif [[ "$REQUESTED_MODE" == 'sync_tags_private' ]]; then
             [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
-          elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' || "$REQUESTED_MODE" == 'tag_runner_check' ]]; then
+          elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' || "$REQUESTED_MODE" == 'publisher_state_check' || "$REQUESTED_MODE" == 'tag_runner_check' ]]; then
             [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
             exit 2
@@ -117,6 +118,30 @@ jobs:
           set -euo pipefail
           cd Dist
           sha256sum -c sha256.txt
+
+  publisher_state_check:
+    needs: preflight
+    if: ${{ inputs.mode == 'publisher_state_check' }}
+    # Execute on the actual WSL SteamCMD publisher, never in a hosted/Windows job.
+    # Only reads CCTO_STEAM_STATE; cannot mutate the state or contact Steam.
+    runs-on: [self-hosted, linux, steamcmd-private-publisher]
+    environment: steam-workshop-private
+    timeout-minutes: 12
+    steps:
+      - name: Check out pinned main without persisting checkout credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate private publisher state in read-only mode
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SHA" == "$EXPECTED_SHA" ]] || exit 2
+          # CCTO_STEAM_STATE must already exist in the host service environment.
+          # Never print its path, full JSON, account, token, or credentials.
+          python3 Scripts/steamcmd_private.py --check-host-state
 
   upload_private:
     needs: preflight
