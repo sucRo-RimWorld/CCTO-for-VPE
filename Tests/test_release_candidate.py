@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'Scripts'))
-from build_release import FILES, FOLDER, EXPECTED_WORKSHOP_ID, check_preview, create_zip, validate
+from build_release import FILES, FOLDER, EXPECTED_WORKSHOP_ID, check_load_folders, check_preview, create_zip, validate
 
 
 class ReleaseCandidateTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class ReleaseCandidateTests(unittest.TestCase):
             check_preview(bytes(damaged))
 
     def test_exact_distribution_contents_reproducible(self):
-        self.assertEqual(len(FILES), 7)
+        self.assertEqual(len(FILES), 8)
         self.assertEqual((ROOT / 'About/PublishedFileId.txt').read_text().strip(), EXPECTED_WORKSHOP_ID)
         self.assertEqual(set(validate(ROOT)), set(FILES))
         with tempfile.TemporaryDirectory() as tmp:
@@ -42,6 +42,16 @@ class ReleaseCandidateTests(unittest.TestCase):
         manifest = ET.parse(ROOT/'About/Manifest.xml').getroot()
         self.assertEqual(about.findtext('modVersion'), manifest.findtext('version'))
         self.assertEqual(about.findtext('name'), 'CCTO for VPE（CCTO VPE対応）')
+
+    def test_conditional_loader_guard_rejects_unreviewed_entries(self):
+        check_load_folders((ROOT / 'LoadFolders.xml').read_bytes())
+        for bad in (
+            b'<loadFolders><v1.6><li>/</li><li>Compatibility/Unknown</li></v1.6></loadFolders>',
+            b'<loadFolders><v1.7><li>/</li></v1.7></loadFolders>',
+            b'<loadFolders><v1.6><li IfModActive="guessed.id">Compatibility/Unknown</li></v1.6></loadFolders>',
+        ):
+            with self.assertRaises(ValueError):
+                check_load_folders(bad)
 
     def test_bilingual_public_copy_and_uncertainty(self):
         text = (ROOT/'Docs/SteamWorkshopDescription.txt').read_text(encoding='utf-8')

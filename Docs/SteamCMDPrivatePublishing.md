@@ -34,9 +34,9 @@ that mention YADA as an ongoing uploader or initial new-item creation.
 
 ## Implementation and safety gates
 
-- `.github/workflows/steam-private.yml` is **manual `workflow_dispatch` only**, never push or pull-request triggered. Default **`preflight`** mode runs source tests, reviews the current seven-file subscriber ZIP and prepares a VDF with **private visibility `2`** without Steam access.
+- `.github/workflows/steam-private.yml` is **manual `workflow_dispatch` only**, never push or pull-request triggered. Default **`preflight`** mode runs source tests, reviews the current eight-file subscriber ZIP and prepares a VDF with **private visibility `2`** without Steam access.
 - Real **`upload_private`** mode requires an exact 40-character current `main` SHA (`exact_main_sha`) and the literal `PRIVATE_ONLY`. It runs only from this repository's `main`, with a GitHub protected environment `steam-workshop-private` and a dedicated **Linux self-hosted runner** labeled `steamcmd-private-publisher`. Public, friends-only, unlisted and arbitrary input visibility are deliberately not implemented. Do not run this on an untrusted PR runner or use the general game-test runner.
-- The publisher script compares the candidate ZIP **byte-for-byte** with the immutable source checkout, accepts only seven reviewed runtime/legal files, validates metadata/title/description and writes a SteamCMD VDF for RimWorld AppID `294100`, `visibility=2`, the approved Preview, English/Japanese description and the current changelog heading. It invokes `steamcmd +login USERNAME +workshop_build_item FILE +quit` only in explicit execute mode.
+- The publisher script compares the candidate ZIP **byte-for-byte** with the immutable source checkout, accepts only eight reviewed runtime/legal files, validates metadata/title/description and writes a SteamCMD VDF for RimWorld AppID `294100`, `visibility=2`, the approved Preview, English/Japanese description and the current changelog heading. It invokes `steamcmd +login USERNAME +workshop_build_item FILE +quit` only in explicit execute mode.
 - Steam account password, Steam Guard code, cached credentials and authentication tickets are **never** GitHub secrets, repository files or script arguments. Authentication is provisioned **interactively on the isolated runner itself** under the restricted SteamCMD service account; the workflow may fail if Steam reauthentication becomes necessary. ChatGPT receives no credentials.
 - The **existing** Workshop ID `3819497323` is pinned in `About/PublishedFileId.txt` and must match durable host state outside checkout (file `0600`, parent `0700`). New-item creation is disabled. The source uploader refuses missing, unverified or mismatching state and never repairs it automatically. Every subsequent upload resets `private_verified` to false until the author rechecks Steam's actual creator-private visibility.
 - Every reported upload records `private_verified=false`. **A successful command alone does not prove the item is private or that Steam serves the expected content.** The owner must inspect the item as the authenticated creator, check visibility and the downloaded subscriber payload, then set `private_verified=true` in the host-local state before a subsequent update.
@@ -106,7 +106,7 @@ Use **Actions → CCTO for VPE SteamCMD private upload → Run workflow**, choos
 
 - **Offline rehearsal:** leave `mode=preflight`, `create_new_item=false`; empty confirmation. It runs hosted static/preview/ZIP checks and produces a 7-day audit artifact. Steam is not contacted, and a registered self-hosted runner is not required.
 - **New item creation is disabled:** always leave `create_new_item=false`, including for the retained item `3819497323`. A missing or mismatched WSL state is HOLD, not permission to create a replacement item.
-- **Later private update:** after confirming the Workshop item is private and the actual downloaded subscriber payload matches the current seven-file source package, set the host-local state JSON `private_verified` field to `true` using restricted local access. Re-dispatch with `mode=upload_private`, `create_new_item=false`, `confirmation=PRIVATE_ONLY`. Preserve the original `publishedfileid`; do not invent or overwrite it with an unrelated Steam ID.
+- **Later private update:** after confirming the Workshop item is private and the actual downloaded subscriber payload matches the current eight-file source package, set the host-local state JSON `private_verified` field to `true` using restricted local access. Re-dispatch with `mode=upload_private`, `create_new_item=false`, `confirmation=PRIVATE_ONLY`. Preserve the original `publishedfileid`; do not invent or overwrite it with an unrelated Steam ID.
 
 For an already existing item, first inspect its ownership/visibility and initialize the private state file with a verified numeric `publishedfileid`, `appid=294100`, `schema_version=1`, `private_verified=true`, file mode 0600; never initialize it with `0` if the item already exists. The uploader will **only** set it to private; it must never be used to update a public item without explicit separate authorization and manual review.
 
@@ -165,7 +165,7 @@ Do **not** delete any Workshop item merely by inference.
   YADA must contain the same file. Merely updating GitHub does not copy the
   file into the user's installed RimWorld Mods folder.
 - `Scripts/build_release.py` validates and includes this file in the new
-  seven-file release candidate. `Scripts/steamcmd_private.py` rejects host
+  eight-file release candidate. `Scripts/steamcmd_private.py` rejects host
   state with any different `publishedfileid`, even if private_verified;
   it also refuses `--create-new`. SteamCMD may update only this existing ID.
 - The previously supported *initial creation* procedure above was applicable

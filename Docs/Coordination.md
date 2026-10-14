@@ -20,6 +20,7 @@ This file is for cross-workstream state and handoffs only. Values, behavior and 
 - The original 14+6 VPE v1 inventory has been expanded to 20 included / 0 excluded base VPE 1.6 Defs, with nine CCTO counterpart parity checks. No new temperature XML, new package dependencies or native tests in this decision.
 - Four detected modules: More Plants, Mushrooms, Succulents, Flowers (source revisions recorded in `Docs/AddonInventory.json`); confirm exact provider identity and custom/ordinary classes before each conditional patch. CCTO base is **not** the owner of VPE family addon definitions.
 - Community bug reports/optional native reproduction remain with issue #4; do not treat VPE game tests as a publication prerequisite. Design/source-of-truth: `Docs/Design.md §8`, `Docs/AddonCompatibility.md`.
+- 2026-10-15 author decision: keep one Mod, use `LoadFolders.xml` / RimWorld 1.6 `IfModActive` per verified optional plant-provider pack to avoid parsing absent-pack XML. The core root remains unconditional; four child packs remain unsupported candidates until separately audited, implemented and packaged. Do not invent provider Package IDs or claim startup benchmarks.
 
 ## VPE-SIX-CUSTOM-CLASS-SOURCE-AUDIT-20261013
 

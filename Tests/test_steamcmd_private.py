@@ -248,7 +248,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
         import subprocess
 
         workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
-        producer = workflow.split('      - name: Build exactly seven subscriber files', 1)[1].split(
+        producer = workflow.split('      - name: Build exactly eight subscriber files', 1)[1].split(
             '      - name: Retain candidate for publisher job and auditing', 1)[0]
         consumer = workflow.split('      - name: Verify candidate artifact digest and reviewed source before invoking SteamCMD', 1)[1].split(
             '      - name: SteamCMD private-only create/update', 1)[0]
