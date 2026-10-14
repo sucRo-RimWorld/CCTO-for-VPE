@@ -49,6 +49,14 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
 - [x] Author confirms YADA was used for the latest upload only, with
   version tags reflected; **YADA is retired for future publishing**. No
   future local-YADA deployment synchronization is required.
+- [x] Read-only WSL publisher-state diagnostic `mode=publisher_state_check`
+  implemented with exact main SHA, dedicated Linux publisher runner,
+  private GitHub environment, local JSON/permissions/ID/private-flag checks,
+  and zero Steam upload/tag calls; mocked offline regression tests guard
+  identity mismatches and forbidden upload flags.
+- [ ] Run `publisher_state_check` on the **actual WSL host** and record
+  result before the next `upload_private`. A static CI PASS is NOT an
+  actual host-state PASS.
 - [ ] For future GitHub Actions updates, reconcile the actual WSL
   SteamCMD publisher state `CCTO_STEAM_STATE` with item `3819497323`,
   Steam creator identity and private visibility. Do not overwrite an
