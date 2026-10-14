@@ -73,9 +73,12 @@ will **not use YADA for future uploads**. Future uploads must use the
 source-pinned private GitHub Actions `preflight` → WSL SteamCMD
 `upload_private` → Windows Steamworks `sync_tags` route. **Do not send a
 redundant tag update now** merely because the tag runner was registered.
-The new Windows Steamworks runner was author-reported started, and local
-Steamworks script probing reached runner launch, but GitHub Actions
-`tag_runner_check` has NOT been run/evidenced. WSL publisher-host
-state reconciliation and real end-to-end future upload remain pending.
+Real private Actions [run #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195)
+at exact main `177ab94fe39ad6487960ca2ca51c747232960a1f`
+now independently verifies `preflight` PASS and Windows
+`tag_runner_check` PASS. `upload_private` and `sync_tags` were
+SKIPPED; no new Workshop mutation was performed. WSL publisher-host
+state reconciliation, live Steamworks tag update, Steam-side read-back
+and first subsequent YADA-free content upload remain unverified.
 Canonical operational source `Docs/SteamCMDPrivatePublishing.md`;
 open deployment checks issue #23.
