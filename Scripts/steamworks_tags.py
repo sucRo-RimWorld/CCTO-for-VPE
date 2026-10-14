@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import stat
 import subprocess
@@ -75,7 +76,7 @@ def run_agent(agent: Path, args: list[str], timeout: int = 210) -> dict:
     return data
 
 
-def _receipt_matches(path: Path, tags: tuple[str, ...]) -> bool:
+def _receipt_matches(path: Path, tags: tuple[str, ...], context: str = 'tag-only') -> bool:
     if not path.exists():
         return False
     try:
@@ -89,16 +90,16 @@ def _receipt_matches(path: Path, tags: tuple[str, ...]) -> bool:
         raise ValueError('Prior tag submission may have started; verify Steam before any retry')
     if obj.get('steamworks_submit_result') != 'OK':
         raise ValueError('Invalid Steamworks receipt status')
-    return obj.get('tags') == list(tags)
+    return obj.get('tags') == list(tags) and obj.get('context') == context
 
 
-def _store_receipt(path: Path, tags: tuple[str, ...], result: str = 'OK') -> None:
+def _store_receipt(path: Path, tags: tuple[str, ...], result: str = 'OK', context: str = 'tag-only') -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     if os.name != 'nt' and stat.S_IMODE(path.parent.stat().st_mode) & 0o077:
         raise ValueError('Receipt parent must be private')
     obj = {
         'schema': 1, 'publishedfileid': EXPECTED_WORKSHOP_ID,
-        'appid': APPID, 'tags': list(tags),
+        'appid': APPID, 'tags': list(tags), 'context': context,
         'steamworks_submit_result': result,
         'steam_page_readback_verified': False,
     }
@@ -114,7 +115,15 @@ def _store_receipt(path: Path, tags: tuple[str, ...], result: str = 'OK') -> Non
             os.unlink(tmp)
 
 
-def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str) -> str:
+def check_session(agent: Path) -> None:
+    probe = run_agent(agent, ['steam-session-probe'], timeout=90)
+    if (probe.get('ready') is not True or probe.get('steamUserLoggedOn') is not True
+            or probe.get('steamAppId') != int(APPID)):
+        raise RuntimeError('Steam desktop session for RimWorld is not authenticated')
+
+
+def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str,
+         after_upload_run_id: str | None = None) -> str:
     tags = expected_metadata(checkout)
     if confirmation != CONFIRM:
         raise ValueError('Explicit TAGS_PRIVATE_ONLY confirmation required')
@@ -123,16 +132,18 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str) -> str:
     if checkout.resolve() == agent.resolve() or checkout.resolve() in agent.resolve().parents:
         raise ValueError('SteamWorkshopAgent binary must be outside checkout')
     receipt = receipt_path_ok(receipt, checkout)
-    if _receipt_matches(receipt, tags):
-        return 'SKIPPED: same tags have a successful local Steamworks receipt; remote state not reverified'
+    if after_upload_run_id is not None and not re.fullmatch(r'[1-9][0-9]{0,19}', after_upload_run_id):
+        raise ValueError('Invalid post-upload GitHub workflow run ID')
+    # A successful SteamCMD content update must refresh tags once per *upload*.
+    # A prior OK tag-only receipt cannot establish tags survived that upload.
+    context = 'after-upload:' + after_upload_run_id if after_upload_run_id else 'tag-only'
+    if _receipt_matches(receipt, tags, context):
+        return 'SKIPPED: same tags and operation have a local OK receipt; Steam page not reverified'
 
-    probe = run_agent(agent, ['steam-session-probe'], timeout=90)
-    if (probe.get('ready') is not True or probe.get('steamUserLoggedOn') is not True
-            or probe.get('steamAppId') != int(APPID)):
-        raise RuntimeError('Steam desktop session for RimWorld is not authenticated')
+    check_session(agent)
     # Intent is durable before the potentially ambiguous Steam submission.
     # An aborted/crashed run remains PENDING and cannot silently retry.
-    _store_receipt(receipt, tags, result='PENDING')
+    _store_receipt(receipt, tags, result='PENDING', context=context)
     # Numeric target + explicit tags avoids parsing an untrusted local mod path.
     # The agent calls only StartItemUpdate/SetItemTags/SubmitItemUpdate.
     result = run_agent(agent, ['set-tags', EXPECTED_WORKSHOP_ID, *tags, '--confirm',
@@ -147,26 +158,42 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str) -> str:
             or result.get('tags') != list(tags)):
         # Do not retry on an ambiguous result: Steam may have accepted it.
         raise RuntimeError('Steamworks tag submit result unverified; inspect Steam before retrying')
-    _store_receipt(receipt, tags)
+    _store_receipt(receipt, tags, context=context)
     return 'SUBMITTED: tag update acknowledged by Steamworks; remote Workshop page not verified'
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--checkout', type=Path, default=ROOT)
-    parser.add_argument('--sync', action='store_true', help='Contact Steamworks; default is offline preflight')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--sync', action='store_true', help='Submit tags via Steamworks')
+    group.add_argument('--probe', action='store_true', help='Check authenticated Steamworks only; never mutate tags')
+    parser.add_argument('--after-upload-run-id', default=None,
+                        help='One-shot refresh context for the exact successful GitHub content-upload run')
     parser.add_argument('--confirm', default='')
     args = parser.parse_args()
     tags = expected_metadata(args.checkout)
-    if not args.sync:
+    if not args.sync and not args.probe:
+        if args.after_upload_run_id:
+            raise ValueError('An upload run ID requires --sync')
         print('OFFLINE tags:', ', '.join(tags), '; Workshop ID:', EXPECTED_WORKSHOP_ID,
               '; no Steam contact')
         return 0
+    if args.probe and args.after_upload_run_id:
+        raise ValueError('A probe cannot be tied to an upload mutation')
     agent = os.environ.get('CCTO_STEAMWORKS_AGENT_BIN')
     receipt = os.environ.get('CCTO_STEAM_TAG_RECEIPT')
     if not agent or not receipt:
         raise ValueError('Trusted desktop runner must configure CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT locally')
-    print(sync(args.checkout, Path(agent), Path(receipt), args.confirm))
+    if args.probe:
+        receipt_path_ok(Path(receipt), args.checkout)
+        if not Path(agent).is_file() or not os.access(agent, os.X_OK):
+            raise ValueError('SteamWorkshopAgent executable is not provisioned')
+        check_session(Path(agent))
+        print('READY: Steamworks authenticated for RimWorld; no Workshop mutation')
+    else:
+        print(sync(args.checkout, Path(agent), Path(receipt), args.confirm,
+                   after_upload_run_id=args.after_upload_run_id))
     return 0
 
 
