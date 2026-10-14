@@ -135,9 +135,9 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
         job = workflow.split('  sync_tags:\n', 1)[1]
         self.assertIn('needs: [preflight, upload_private]', job)
         self.assertIn('needs.upload_private.result == \'success\'', job)
-        self.assertIn('runs-on: [self-hosted, linux, steamworks-tag-publisher]', job)
+        self.assertIn('runs-on: [self-hosted, windows, steamworks-tag-publisher]', job)
         self.assertIn('environment: steam-workshop-private', job)
-        self.assertIn('python3 Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY', job)
+        self.assertIn('python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY', job)
         self.assertNotIn('workshop_build_item', job)
         self.assertNotIn('set-changenote', job)
         self.assertNotIn('new-mod', job)
