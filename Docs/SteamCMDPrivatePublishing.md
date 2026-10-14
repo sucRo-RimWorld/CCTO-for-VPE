@@ -1,5 +1,31 @@
 # CCTO for VPE — PRIVATE-ONLY SteamCMD Workshop publishing
 
+## Current publisher decision — 2026-10-14 (supersedes historical YADA instructions)
+
+**Future Workshop uploads must not use YADA.** The author's latest upload
+using YADA is historical; the author reports the tags on the retained item
+`3819497323` are already reflected. Do not repeat a Steamworks tag update
+solely to reproduce that completed operation. For **future** CCTO for VPE
+releases the approved tooling path is the repository's **manual**
+`steam-private.yml` GitHub Actions pipeline: source/ZIP `preflight` →
+separate WSL `steamcmd-private-publisher` `upload_private` for the
+existing ID only → interactive Windows `steamworks-tag-publisher`
+`sync_tags` for About-derived `Mod` and version tags. SteamCMD is responsible
+for file upload; Steamworks handles tags. The non-mutating
+`tag_runner_check` is still required as a first connectivity/identity
+test of the newly registered Windows runner and **does not reapply tags**.
+
+Do not treat the author's completed YADA upload or a successful Windows local
+Steamworks probe as evidence that GitHub Actions has completed its
+`tag_runner_check` or that future automated content updates work. Before
+any subsequent `upload_private`, reconcile the **actual WSL publisher's**
+`CCTO_STEAM_STATE` with Workshop ID `3819497323`, creator identity and
+private visibility. A mismatched host state is a safety stop, not reason to
+create a new item or overwrite the state. Maintain protected approval and no
+public visibility transition. This section supersedes any older examples
+that mention YADA as an ongoing uploader or initial new-item creation.
+
+
 **Decision (2026-10-13):** Uploads orchestrated from ChatGPT/GitHub Actions must **create or update only an author-private** RimWorld Workshop item; public publication requires a separate explicit author decision and a different process. This is a scoped **CCTO for VPE** publisher, not a change to the Project shared native RimWorld test-host architecture and not evidence of Steam login/upload. Game testing remains author-waived for this optional addon.
 
 ## Implementation and safety gates
