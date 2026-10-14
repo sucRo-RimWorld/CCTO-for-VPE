@@ -46,11 +46,13 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
 - [x] `About/PublishedFileId.txt` is included and validated in the **current
   seven-file** source release; SteamCMD rejects mismatching host state and
   new-item creation. Earlier six-file evidence above is historical.
-- [ ] Verify on the actual local YADA deployment that
-  `About/PublishedFileId.txt` equals `3819497323`; GitHub source changes
-  alone do not correct the installed copy.
-- [ ] Independently reconcile `CCTO_STEAM_STATE` with the target Workshop
-  item, owner and creator-private visibility before future SteamCMD updates.
+- [x] Author confirms YADA was used for the latest upload only, with
+  version tags reflected; **YADA is retired for future publishing**. No
+  future local-YADA deployment synchronization is required.
+- [ ] For future GitHub Actions updates, reconcile the actual WSL
+  SteamCMD publisher state `CCTO_STEAM_STATE` with item `3819497323`,
+  Steam creator identity and private visibility. Do not overwrite an
+  inconsistent item ID or create a new item.
 - [ ] Verify the actual Steam page, tags, change notes, and subscriber payload
   on the selected item before claiming distribution consistency.
 
@@ -74,8 +76,15 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
 - [ ] Provision a dedicated Windows interactive desktop-Steam runner,
   pinned reviewed SteamWorkshopAgent build, Steam-native DLL override,
   user-private receipt path and actual Steam session.
-- [ ] Run `tag_runner_check` against the exact main SHA from the logged-in
-  Steam Windows session; record probe status and native-library fingerprint.
+- [x] Real GitHub Actions [run #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195)
+  at main `177ab94fe39ad6487960ca2ca51c747232960a1f`:
+  `preflight` PASS and Windows `tag_runner_check` PASS,
+  `upload_private` and `sync_tags` SKIPPED. No Workshop mutation.
+- [ ] Obtain Steam-side evidence of item `3819497323` ownership/private
+  visibility, tags and latest uploaded subscriber payload; the author
+  reports the recent YADA-applied tags reflected, not an automated sync.
+- [ ] Record any Windows native DLL/agent SHA-256 hashes separately if
+  exact installation provenance is needed for future troubleshooting.
 - [ ] Verify on the private Steam item that `SetItemTags` succeeded and
   current tags are visible; local callback success is not remote read-back.
 - [ ] After a real SteamCMD update, verify both the complete changenote

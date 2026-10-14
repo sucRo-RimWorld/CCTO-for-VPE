@@ -65,3 +65,20 @@ Steamworks tag update, Steam page read-back, Steam change-note display
 or subscriber verification has occurred. Formal source
 `Scripts/steamworks_tags.py`, `Scripts/Prepare-WindowsSteamworksTagRunner.ps1`,
 `Docs/SteamCMDPrivatePublishing.md`; follow-up issue #23.
+
+2026-10-14 publisher route decision (latest author correction): YADA was
+used to apply the latest CCTO for VPE Workshop update and the author reports
+its tags reflected on the retained item `3819497323`. The author explicitly
+will **not use YADA for future uploads**. Future uploads must use the
+source-pinned private GitHub Actions `preflight` → WSL SteamCMD
+`upload_private` → Windows Steamworks `sync_tags` route. **Do not send a
+redundant tag update now** merely because the tag runner was registered.
+Real private Actions [run #38519717195](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38519717195)
+at exact main `177ab94fe39ad6487960ca2ca51c747232960a1f`
+now independently verifies `preflight` PASS and Windows
+`tag_runner_check` PASS. `upload_private` and `sync_tags` were
+SKIPPED; no new Workshop mutation was performed. WSL publisher-host
+state reconciliation, live Steamworks tag update, Steam-side read-back
+and first subsequent YADA-free content upload remain unverified.
+Canonical operational source `Docs/SteamCMDPrivatePublishing.md`;
+open deployment checks issue #23.
