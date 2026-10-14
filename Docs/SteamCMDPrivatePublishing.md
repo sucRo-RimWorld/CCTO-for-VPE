@@ -26,6 +26,16 @@
 - The preflight stores `Dist/sha256.txt` with a **filename relative to `Dist/`**. The publisher downloads the artifact into `Dist/`, changes into that directory, and runs `sha256sum -c sha256.txt` before SteamCMD. The publisher also independently compares ZIP bytes to the current approved main checkout. Never weaken either check to work around missing files.
 - [Failed first upload attempt #38422572626](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38422572626): preflight PASS, intermittent publisher DNS errors during checkout, then a deterministic `Dist/Dist/` checksum pathname failure. The SteamCMD upload step was **skipped**, so this run neither created nor updated a Steam item. Correct the checksum path and complete PR/main checks before a fresh, explicitly authorized `upload_private` dispatch. Keep the initial-create state gate; do not assume an item ID from a failed GitHub job.
 
+## Publisher runner connectivity diagnostic (no Workshop upload)
+
+After repeated WSL host-only DNS failures in `actions/checkout@v4` and `actions/download-artifact@v4`, use the manual **`runner_check`** mode **before any further `upload_private` attempt**. It runs the already-approved `preflight` on GitHub-hosted Linux, then dispatches a *nonpublishing* job on the same labeled `steamcmd-private-publisher` self-hosted runner and `steam-workshop-private` environment as the upload job. On that host, the job checks out the pinned current `main`, downloads the preflight artifact and verifies `Dist/sha256.txt` from inside `Dist/`.
+
+To run: Actions → `CCTO for VPE SteamCMD private upload` → **Run workflow** (not **Re-run jobs**) → branch `main`; select `mode=runner_check`, exact current `main` 40-character SHA, `create_new_item=false`, **empty** `confirmation`. This mode has no SteamCMD step, cannot create or update a Workshop item and leaves the local PublishedFileId state untouched. It does not verify authenticated Steam access, current Workshop visibility or native-game behavior.
+
+- If `runner_check` fails while GitHub Actions is **setting up the job**, inspect whether the action archive came from `codeload.github.com`; this occurs before any workflow shell step executes. An independent `curl` test in an interactive shell does not demonstrate the .NET runner downloader works under systemd.
+- If it passes, the checkout / action-download / artifact-transfer / checksum path worked **in that one run**. It does **not** prove intermittent DNS is permanently fixed. Keep separate authorization and state checks for any actual private upload.
+- Recent failing examples: [#38429405504](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38429405504), [#38432806373](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38432806373). Both had hosted `preflight` PASS and publisher setup FAIL resolving `codeload.github.com`; the SteamCMD step never ran. Host diagnosis is tracked in [issue #17](https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/17).
+
 ## Dispatch and verification
 
 Use **Actions → CCTO for VPE SteamCMD private upload → Run workflow**, choose `main`, copy the exact current `main` SHA into `exact_main_sha`.
