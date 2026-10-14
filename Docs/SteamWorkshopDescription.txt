@@ -83,3 +83,5 @@ CCTOの耐寒性設定をVanilla Plants Expanded（VPE）の基本セットに�
 [h2]不具合報告[/h2]
 [b]実ゲームでの動作は未検証。[/b] VPE利用者の報告に基づき修正する。対象植物・Mod構成・再現手順・ログなどを可能な範囲で記載してほしい。
 [url=https://github.com/sucRo-RimWorld/CCTO-for-VPE/issues/new/choose]GitHub Issues / 不具合報告[/url]
+
+[url=https://ko-fi.com/sucro0629]Support on Ko-fi / Ko-fiで支援[/url]
