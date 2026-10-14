@@ -46,9 +46,12 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
 - [x] `About/PublishedFileId.txt` is included and validated in the **current
   seven-file** source release; SteamCMD rejects mismatching host state and
   new-item creation. Earlier six-file evidence above is historical.
-- [ ] Verify on the actual local YADA deployment that
-  `About/PublishedFileId.txt` equals `3819497323`; GitHub source changes
-  alone do not correct the installed copy.
+- [x] Author confirms YADA was used for the latest upload only, with
+  version tags reflected; **YADA is retired for future publishing**. No
+  future local-YADA deployment synchronization is required.
+- [ ] For future GitHub Actions updates, verify the actual WSL SteamCMD
+  publisher state `CCTO_STEAM_STATE` identifies `3819497323`, and verify
+  creator ownership and private visibility before uploading.
 - [ ] Independently reconcile `CCTO_STEAM_STATE` with the target Workshop
   item, owner and creator-private visibility before future SteamCMD updates.
 - [ ] Verify the actual Steam page, tags, change notes, and subscriber payload
