@@ -48,15 +48,20 @@ The author accepted ChatGPT→GitHub Actions→isolated self-hosted SteamCMD as 
 2026-10-14 Workshop identity correction (author-reported): CCTO for VPE's **currently retained** Workshop item is https://steamcommunity.com/sharedfiles/filedetails/?id=3819497323. A YADA attempt created a separate item; do not assume which item was the duplicate or delete any Steam listing without a creator-side audit. The owner source now pins `About/PublishedFileId.txt` to `3819497323`, packs and validates seven subscriber files, and rejects SteamCMD host state pointing to another item or `create_new_item=true`. **The existing host state and installed YADA folder have not been read or changed; no live Steam update, private visibility re-verification, tag sync or change-note read-back has been performed.** Canonical source/runbook: `About/PublishedFileId.txt`, `Scripts/build_release.py`, `Scripts/steamcmd_private.py`, `Docs/SteamCMDPrivatePublishing.md`; follow-up publishing infrastructure in issues #17 and #23.
 
 
-2026-10-14 Steamworks tag-sync implementation handoff: owner source has an optional
-`sync_tags_private` manual action and an automatic follow-up `sync_tags`
-job after successful `upload_private`, targeting the fixed existing
-Workshop ID `3819497323`. The existing WSL SteamCMD runner cannot
-authenticate the Windows Steam desktop session. The new `steamworks-tag-publisher`
-runner and SteamWorkshopAgent Windows build/Steamworks native DLL/session are
-**not provisioned or proven**. The script requires exact `Mod` + approved
-About versions, Steamworks app 294100, existing ID, a logged-on desktop
-session and a local no-retry intent receipt. No Steam-side tag sync, change-note
-read-back or subscriber verification is claimed. Formal procedure:
-`Docs/SteamCMDPrivatePublishing.md`; source
-`Scripts/steamworks_tags.py`; live deployment follow-up issue #23.
+2026-10-14 Steamworks tag-sync workstream (latest): `sync_tags_private`
+and automatic post-`upload_private` Steamworks tagging target only the
+author's existing Workshop ID `3819497323`. Windows-side interactive
+Steamworks host is still **NOT PROVISIONED/VERIFIED** and is separate
+from the functioning WSL SteamCMD publisher and the paused AMJ native
+test host. A source-only `Prepare-WindowsSteamworksTagRunner.ps1`
+launcher now pins/builds the reviewed upstream agent and runs the
+non-mutating Steamworks desktop probe; GitHub Actions
+`tag_runner_check` checks that exact session without modifying Steam.
+Tags are derived from actual About versions (currently `Mod` + `1.6`).
+Each *successful content upload* has a distinct no-replay tag sync
+receipt keyed by GitHub run ID, and ambiguous `PENDING` aborts retry.
+These are **source and offline-test results only**: no Windows host action,
+Steamworks tag update, Steam page read-back, Steam change-note display
+or subscriber verification has occurred. Formal source
+`Scripts/steamworks_tags.py`, `Scripts/Prepare-WindowsSteamworksTagRunner.ps1`,
+`Docs/SteamCMDPrivatePublishing.md`; follow-up issue #23.
