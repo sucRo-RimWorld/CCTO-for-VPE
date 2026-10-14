@@ -115,3 +115,81 @@ Do **not** delete any Workshop item merely by inference.
   public access in this task. The owner's designated item identity is a user
   instruction; live private visibility, remote changelog, Workshop tags and
   subscribed payload remain separately unverified.
+
+
+## Authenticated Steamworks category-tag sync — integrated source, host pending
+
+**2026-10-14:** The SteamCMD VDF cannot itself apply Workshop category tags.
+The owner workflow now includes a separate `sync_tags` job using
+`Scripts/steamworks_tags.py`, which delegates to
+[pardeike/SteamWorkshopAgent](https://github.com/pardeike/SteamWorkshopAgent)
+(`set-tags`, Steamworks API) on a dedicated **Windows interactive desktop
+Steam session**. The integration uses the CLI contract inspected at upstream
+source revision `c58f903d1e0220c395c8e305e1b9d3177db6df32`. No binary
+is fetched from the internet in an authenticated runner job. Keep the
+preinstalled agent version checked against this contract before using it.
+
+Workflow behavior:
+
+- `mode=sync_tags_private`, `create_new_item=false`,
+  `confirmation=TAGS_PRIVATE_ONLY`: run the existing hosted source preflight,
+  then the tag-only Windows runner. No SteamCMD content upload.
+- `mode=upload_private`, `create_new_item=false`,
+  `confirmation=PRIVATE_ONLY`: run the existing Linux SteamCMD publisher,
+  then run `sync_tags` **only if the SteamCMD job succeeded**. Tag sync
+  failure/pending runner is not success; do not treat publication as complete.
+- `preflight` and `runner_check` do not contact Steamworks.
+- The category tags come exclusively from the exact main checkout's
+  `About/About.xml` (currently `Mod` and `1.6`), and the item ID comes
+  from the pinned `About/PublishedFileId.txt` (`3819497323`).
+- Tag updates never call `new-mod`, `publish`, SteamCMD, or visibility
+  setters. The agent's `set-tags` command uses
+  `ISteamUGC::SetItemTags` + `SubmitItemUpdate`, with a short, bilingual
+  tag-maintenance note. Existing Workshop content and visibility are not
+  requested to change.
+- A Steam session probe must return authenticated Steamworks for app 294100
+  before submission. An on-host private receipt records a `PENDING` intent
+  *before* the Steamworks call. A timeout/failed/ambiguous result blocks
+  automatic retry; only a proven `OK` result writes the completed receipt.
+  Repeating the same tag set with an `OK` local receipt skips the second
+  submission (avoid duplicate notes). If tags change in the approved About
+  source, the differing tag set can be submitted once. A local receipt is
+  **not** remote tag read-back.
+
+**Required host provisioning; not yet verified:**
+
+1. Run a second, dedicated self-hosted GitHub runner on **Windows in the same
+   interactive user session as the logged-in, online Steam desktop client**.
+   Label it `steamworks-tag-publisher` with standard `self-hosted` and
+   `windows` labels. Do not run the tag runner as a Session 0 Windows
+   service; `SteamAPI_Init` may not see the desktop Steam account there.
+   This is separate from WSL's `steamcmd-private-publisher` service.
+2. Install a reviewed Windows x64 build of SteamWorkshopAgent and .NET 10
+   runtime on the trusted machine; provision `STEAMWORKS_NATIVE_LIB` to
+   RimWorld's correct `steam_api64.dll` path. Upstream currently defaults to
+   macOS library discovery, so the Windows override is essential.
+   Test the upstream `steam-session-probe` in the exact interactive runner
+   context, not from a different user's shell.
+3. Provision **host-local** `CCTO_STEAMWORKS_AGENT_BIN` (absolute executable)
+   and `CCTO_STEAM_TAG_RECEIPT` (under that user's `LOCALAPPDATA`, with
+   user-private NTFS permissions). Do not store tokens, Steam login passwords,
+   private receipt files or Steam authenticator data in GitHub. The checkout
+   is never used to install/overwrite the agent.
+4. Reconcile creator ownership and the item being private *on Steam* before
+   granting the protected `steam-workshop-private` environment approval.
+   A SteamCMD login may invalidate the concurrent desktop session; the probe
+   will fail closed rather than guessing. Keep tag and content runners
+   isolated even when installed on the same physical PC.
+5. After an accepted tag update, inspect the actual retained Workshop item
+   `3819497323` as its creator, verify the `Mod`/version tags and current
+   private visibility, and record this as Steam-side evidence. The agent's
+   callback and the local receipt alone prove neither Steam page read-back
+   nor subscriber contents. A failed/ambiguous `PENDING` receipt requires
+   an explicit human/owner reconciliation before any retry. Don't delete it
+   or dispatch another update blindly.
+
+The owner Python tests mock SteamWorkshopAgent; they demonstrate guards and
+workflow structure only. This source integration does not mean that the
+second runner, Windows native DLL, authenticated desktop session, or actual
+Steam tag setting is installed/working. No live Workshop mutation has
+been performed by this change.
