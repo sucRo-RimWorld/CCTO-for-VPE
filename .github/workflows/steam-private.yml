@@ -158,7 +158,7 @@ jobs:
     # successful manual SteamCMD update. If the desktop Steam runner is not
     # configured, this job cannot run; NEVER consider upload fully synced.
     if: ${{ always() && needs.preflight.result == 'success' && (inputs.mode == 'sync_tags_private' || (inputs.mode == 'upload_private' && needs.upload_private.result == 'success')) }}
-    runs-on: [self-hosted, linux, steamworks-tag-publisher]
+    runs-on: [self-hosted, windows, steamworks-tag-publisher]
     environment: steam-workshop-private
     timeout-minutes: 12
     steps:
@@ -167,25 +167,25 @@ jobs:
         with:
           persist-credentials: false
       - name: Recheck SHA and existing Workshop identity
-        shell: bash
+        shell: pwsh
         env:
           EXPECTED_SHA: ${{ inputs.exact_main_sha }}
         run: |
-          set -euo pipefail
-          [[ "$GITHUB_SHA" == "$EXPECTED_SHA" ]] || exit 2
-          python3 Scripts/steamworks_tags.py
+          if ($env:GITHUB_SHA -cne $env:EXPECTED_SHA) { throw 'Source SHA changed' }
+          python Scripts/steamworks_tags.py
       - name: Apply tags through authenticated desktop Steamworks
-        shell: bash
+        shell: pwsh
         env:
           MODE: ${{ inputs.mode }}
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
-          set -euo pipefail
-          if [[ "$MODE" == 'sync_tags_private' ]]; then
-            [[ "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
-          else
-            [[ "$MODE" == 'upload_private' && "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
-          fi
-          # CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT must
-          # be configured LOCALLY on this dedicated desktop-Steam runner.
-          python3 Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
+          if ($env:MODE -eq 'sync_tags_private') {
+            if ($env:CONFIRMATION -cne 'TAGS_PRIVATE_ONLY') { throw 'Tag approval missing' }
+          } elseif ($env:MODE -eq 'upload_private') {
+            if ($env:CONFIRMATION -cne 'PRIVATE_ONLY') { throw 'Private-upload approval missing' }
+          } else {
+            throw 'Invalid tag-sync dispatch mode'
+          }
+          # Host-only vars CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT.
+          # Run the Windows GitHub runner in the INTERACTIVE Steam desktop session.
+          python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
