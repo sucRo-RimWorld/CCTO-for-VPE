@@ -151,10 +151,11 @@ Workflow behavior:
   before submission. An on-host private receipt records a `PENDING` intent
   *before* the Steamworks call. A timeout/failed/ambiguous result blocks
   automatic retry; only a proven `OK` result writes the completed receipt.
-  Repeating the same tag set with an `OK` local receipt skips the second
-  submission (avoid duplicate notes). If tags change in the approved About
-  source, the differing tag set can be submitted once. A local receipt is
-  **not** remote tag read-back.
+  A repeated tag-only request with an `OK` receipt is skipped. **Every successful
+  content upload** uses its unique GitHub workflow run ID to refresh tags once,
+  even if an earlier tag-only request succeeded; reruns for the same workflow
+  run ID are skipped. An ambiguous `PENDING` receipt always blocks retry.
+  A local receipt is **not** remote tag read-back.
 
 **Required host provisioning; not yet verified:**
 
@@ -193,3 +194,75 @@ workflow structure only. This source integration does not mean that the
 second runner, Windows native DLL, authenticated desktop session, or actual
 Steam tag setting is installed/working. No live Workshop mutation has
 been performed by this change.
+
+## Windows host bootstrap and nonpublishing acceptance (2026-10-14)
+
+The existing Windows Steam session cannot be accessed from GitHub source-control
+tools. The *working host* and *actual Steam tag visibility* remain unverified.
+Do not label the tag infrastructure LIVE merely because the repository CI passed.
+
+Use the owner-managed `Scripts/Prepare-WindowsSteamworksTagRunner.ps1` from a
+**PowerShell 7 interactive session**, not elevated and not a Windows service.
+It keeps the Steamworks binary/receipt below the logged-in Windows user's
+`LOCALAPPDATA`. It checks for desktop Steam **in the same Windows session**,
+detects exactly one native `steam_api64.dll` within the installed RimWorld
+root, builds a reviewed/pinned upstream agent from commit
+`c58f903d1e0220c395c8e305e1b9d3177db6df32` only when requested,
+and runs the agent's **read-only `steam-session-probe`**. It prints SHA-256
+hashes of the agent executable and native library but not Steam credentials.
+An upstream .NET 10 SDK and Git are required only for `-BuildPinnedAgent`;
+Python must also be in the interactive runner's PATH.
+
+Example from the reviewed CCTO-for-VPE checkout on the user's **own**
+Windows machine (change the RimWorld installation path if applicable):
+
+```powershell
+pwsh -NoProfile -File .\Scripts\Prepare-WindowsSteamworksTagRunner.ps1 -RimWorldRoot 'D:\SteamLibrary\steamapps\common\RimWorld' -BuildPinnedAgent
+```
+
+This command only builds/probes; it does not register a GitHub runner and
+does not change tags. A successful direct PowerShell probe still does not
+prove the Actions runner runs in that same Windows login session.
+
+Register a **separately authorized** self-hosted Windows runner to the
+`sucRo-RimWorld/CCTO-for-VPE` repository, with the labels
+`self-hosted`, `windows`, and `steamworks-tag-publisher`. Use the
+repository's GitHub Settings > Actions > Runners > New self-hosted runner
+flow. Registration token is short-lived and entered **locally only**.
+Do not run `svc install`, `svc start` or Windows Service Manager for
+this interactive desktop-Steam runner. The dedicated WSL SteamCMD runner
+has a different label and separate host-level Steam credentials.
+
+After runner registration, launch the registered runner from the same logged
+Steam Windows account. This process-scoped launcher performs the same
+nonpublishing Steamworks probe first; the actual runner inherits the two
+`CCTO_...` variables and `STEAMWORKS_NATIVE_LIB` only through its process
+environment, not through GitHub secrets.
+
+```powershell
+pwsh -NoProfile -File .\Scripts\Prepare-WindowsSteamworksTagRunner.ps1 -RimWorldRoot 'D:\SteamLibrary\steamapps\common\RimWorld' -RunnerHome 'C:\actions-runner-steamworks' -RunRegisteredRunner
+```
+
+The runner directory is an example, not evidence it has been installed.
+Never reuse a general PR/native-game runner, save root or Steam credentials.
+
+With the Windows runner online, GitHub Actions
+`CCTO for VPE SteamCMD private upload` now has
+`mode=tag_runner_check` (exact **current** main SHA,
+`create_new_item=false`, empty confirmation). It runs the hosted source
+tests followed by the **Windows session probe only**. It has no
+`set-tags`, `--sync`, or SteamCMD upload step. Only after this check
+passes and the existing item has been independently verified private
+should a separate manual `sync_tags_private`/ `TAGS_PRIVATE_ONLY`
+dispatch be considered. No Steam job is dispatched by documentation edits.
+
+If the probe fails, investigate the exact native library, binary architecture,
+Steam logged-on state and runner session isolation. Do **not** change service
+privileges, copy authentication files between users, disable repository guards
+or blindly retry a `PENDING` tag operation.
+
+**Windows compatibility remains conditional:** SteamWorkshopAgent's upstream
+documentation and automatic library discovery target macOS; supplying a Windows
+`steam_api64.dll` is supported by its environment override, but actual
+native ABI, SteamAPI_Init and SetItemTags on this author's PC have not been
+tested. Source-level CI cannot verify the native behavior.

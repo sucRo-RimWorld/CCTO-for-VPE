@@ -3,13 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'preflight / runner_check / upload_private / sync_tags_private'
+        description: 'preflight / runner_check / tag_runner_check / upload_private / sync_tags_private'
         required: true
         type: choice
         default: preflight
         options:
           - preflight
           - runner_check
+          - tag_runner_check
           - upload_private
           - sync_tags_private
       exact_main_sha:
@@ -52,7 +53,7 @@ jobs:
             # Creation disabled: update the author-selected existing Workshop item only.
           elif [[ "$REQUESTED_MODE" == 'sync_tags_private' ]]; then
             [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
-          elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' ]]; then
+          elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' || "$REQUESTED_MODE" == 'tag_runner_check' ]]; then
             [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
             exit 2
@@ -152,6 +153,26 @@ jobs:
             --zip Dist/CCTO-for-VPE-0.1.0.zip \
             --execute --confirm "$CONFIRMATION"
 
+  tag_runner_check:
+    needs: preflight
+    if: ${{ inputs.mode == 'tag_runner_check' }}
+    runs-on: [self-hosted, windows, steamworks-tag-publisher]
+    environment: steam-workshop-private
+    timeout-minutes: 10
+    steps:
+      - name: Check out approved main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source revision and Steamworks desktop login without submitting tags
+        shell: pwsh
+        env:
+          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+        run: |
+          if ($env:GITHUB_SHA -cne $env:EXPECTED_SHA) { throw 'Source SHA changed' }
+          python Scripts/steamworks_tags.py --probe
+          if ($LASTEXITCODE -ne 0) { throw 'Steamworks probe failed' }
+
   sync_tags:
     needs: [preflight, upload_private]
     # Supports an explicit tag-only repair and automatically runs after a
@@ -173,6 +194,7 @@ jobs:
         run: |
           if ($env:GITHUB_SHA -cne $env:EXPECTED_SHA) { throw 'Source SHA changed' }
           python Scripts/steamworks_tags.py
+          if ($LASTEXITCODE -ne 0) { throw 'Steamworks source check failed' }
       - name: Apply tags through authenticated desktop Steamworks
         shell: pwsh
         env:
@@ -188,4 +210,9 @@ jobs:
           }
           # Host-only vars CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT.
           # Run the Windows GitHub runner in the INTERACTIVE Steam desktop session.
-          python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
+          if ($env:MODE -eq 'upload_private') {
+            python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY --after-upload-run-id "$env:GITHUB_RUN_ID"
+          } else {
+            python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Steamworks tag update failed' }
