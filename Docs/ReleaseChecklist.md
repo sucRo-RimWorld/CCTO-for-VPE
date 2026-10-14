@@ -53,3 +53,22 @@ Bug-report and feedback workflow: [issue #4](https://github.com/sucRo-RimWorld/C
   item, owner and creator-private visibility before future SteamCMD updates.
 - [ ] Verify the actual Steam page, tags, change notes, and subscriber payload
   on the selected item before claiming distribution consistency.
+
+
+## Steamworks category-tag synchronizer — 2026-10-14
+
+- [x] Owner source implements manual tag-only `sync_tags_private` and
+  post-success `upload_private` metadata sync, on a separate Windows
+  interactive Steamworks runner. It extracts category versions from the
+  current `About.xml` and pins Workshop ID `3819497323`.
+- [x] Offline test contract requires exact ID, `Mod`/approved versions,
+  app ID 294100, logged-on Steamworks probe, no implicit creation/public
+  visibility change, local `PENDING` submission intent, and no repeat
+  submission after a local successful receipt.
+- [ ] Provision a dedicated Windows interactive desktop-Steam runner,
+  pinned reviewed SteamWorkshopAgent build, Steam-native DLL override,
+  user-private receipt path and actual Steam session.
+- [ ] Verify on the private Steam item that `SetItemTags` succeeded and
+  current tags are visible; local callback success is not remote read-back.
+- [ ] After a real SteamCMD update, verify both the complete changenote
+  history and the tag job completed, with subscriber files unchanged.
