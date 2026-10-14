@@ -65,3 +65,17 @@ Steamworks tag update, Steam page read-back, Steam change-note display
 or subscriber verification has occurred. Formal source
 `Scripts/steamworks_tags.py`, `Scripts/Prepare-WindowsSteamworksTagRunner.ps1`,
 `Docs/SteamCMDPrivatePublishing.md`; follow-up issue #23.
+
+2026-10-14 publisher route decision (latest author correction): YADA was
+used to apply the latest CCTO for VPE Workshop update and the author reports
+its tags reflected on the retained item `3819497323`. The author explicitly
+will **not use YADA for future uploads**. Future uploads must use the
+source-pinned private GitHub Actions `preflight` → WSL SteamCMD
+`upload_private` → Windows Steamworks `sync_tags` route. **Do not send a
+redundant tag update now** merely because the tag runner was registered.
+The new Windows Steamworks runner was author-reported started, and local
+Steamworks script probing reached runner launch, but GitHub Actions
+`tag_runner_check` has NOT been run/evidenced. WSL publisher-host
+state reconciliation and real end-to-end future upload remain pending.
+Canonical operational source `Docs/SteamCMDPrivatePublishing.md`;
+open deployment checks issue #23.
