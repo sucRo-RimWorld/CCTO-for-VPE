@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'Scripts'))
 from build_release import create_zip, FILES, FOLDER, EXPECTED_WORKSHOP_ID
 from steamcmd_private import (
-    APPID, VISIBILITY, check_state_path, load_published_id,
+    APPID, VISIBILITY, check_existing_host_state, check_state_path, load_published_id,
     current_changenote, make_vdf, read_updated_id, run_upload,
     validate_zip_and_copy, vdf_quote, workshop_tags,
 )
@@ -151,6 +151,96 @@ class SteamCMDPrivateContract(unittest.TestCase):
                           'CCTO_STEAM_ACCOUNT', 'CCTO_STEAMCMD_BIN',
                           'CCTO_STEAM_STATE', '--execute', 'CREATE_NEW:'):
             self.assertNotIn(forbidden, check)
+
+    def test_publisher_state_check_runs_only_on_approved_wsl_host(self):
+        """CI checks structure; never reads a real publisher or contacts Steam."""
+        workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
+        auth = workflow.split('      - name: Verify manual default-branch authorization', 1)[1].split(
+            '      - uses: actions/checkout@v4', 1)[0]
+        self.assertIn('"$REQUESTED_MODE" == \'publisher_state_check\'', auth)
+        self.assertIn('"$CREATE_NEW" == \'false\' && -z "$CONFIRMATION"', auth)
+        check = workflow.split('  publisher_state_check:\n', 1)[1].split(
+            '  upload_private:\n', 1)[0]
+        self.assertIn("if: ${{ inputs.mode == 'publisher_state_check' }}", check)
+        self.assertIn('needs: preflight', check)
+        self.assertIn('runs-on: [self-hosted, linux, steamcmd-private-publisher]', check)
+        self.assertIn('environment: steam-workshop-private', check)
+        self.assertIn('persist-credentials: false', check)
+        self.assertIn('"$GITHUB_SHA" == "$EXPECTED_SHA"', check)
+        self.assertIn('python3 Scripts/steamcmd_private.py --check-host-state', check)
+        for forbidden in ('--execute', '--sync', 'workshop_build_item',
+                          'CCTO_STEAM_ACCOUNT', '+login'):
+            self.assertNotIn(forbidden, check)
+
+    def test_read_only_publisher_host_state_guard(self):
+        """Correct private state passes without mutation; mismatches fail closed."""
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            state = folder / 'publisher.json'
+            with self.assertRaisesRegex(ValueError, 'No saved Workshop ID'):
+                check_existing_host_state(state, ROOT)
+            good = {'schema_version': 1, 'appid': APPID,
+                    'publishedfileid': EXPECTED_WORKSHOP_ID, 'private_verified': True}
+            def set_state(data):
+                state.write_text(json.dumps(data), encoding='utf-8')
+                os.chmod(state, 0o600)
+
+            set_state(good)
+            saved = state.read_bytes()
+            check_existing_host_state(state, ROOT)
+            self.assertEqual(state.read_bytes(), saved)
+            self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o600)
+            for field, value in (
+                ('appid', '99999'),
+                ('publishedfileid', '3819486090'),
+                ('private_verified', False),
+                ('schema_version', 999),
+            ):
+                bad = dict(good)
+                bad[field] = value
+                set_state(bad)
+                with self.assertRaises(ValueError, msg=field):
+                    check_existing_host_state(state, ROOT)
+            state.write_text('[]', encoding='utf-8')
+            os.chmod(state, 0o600)
+            with self.assertRaisesRegex(ValueError, 'document type'):
+                check_existing_host_state(state, ROOT)
+            set_state(good)
+            os.chmod(state, 0o644)
+            with self.assertRaisesRegex(ValueError, '0600'):
+                check_existing_host_state(state, ROOT)
+            state.unlink()
+            link = folder / 'publisher-link.json'
+            link.symlink_to(folder / 'not-a-real-file')
+            with self.assertRaisesRegex(ValueError, 'symlink'):
+                check_existing_host_state(link, ROOT)
+
+    def test_state_check_cli_never_accepts_upload_mode_or_missing_host_path(self):
+        import subprocess
+        exe = [sys.executable, str(ROOT / 'Scripts/steamcmd_private.py'),
+               '--check-host-state']
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / 'publisher.json'
+            state.write_text(json.dumps({'schema_version': 1, 'appid': APPID,
+                                         'publishedfileid': EXPECTED_WORKSHOP_ID,
+                                         'private_verified': True}), encoding='utf-8')
+            os.chmod(state, 0o600)
+            env = dict(os.environ, CCTO_STEAM_STATE=str(state))
+            for invalid in ('--execute', '--create-new', '--confirm',
+                            '--zip'):
+                cmd = exe + [invalid]
+                if invalid in ('--confirm', '--zip'):
+                    cmd += ['some-value']
+                result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0, invalid)
+                self.assertEqual(state.read_text(encoding='utf-8'),
+                                 json.dumps({'schema_version': 1, 'appid': APPID,
+                                             'publishedfileid': EXPECTED_WORKSHOP_ID,
+                                             'private_verified': True}))
+            result = subprocess.run(exe, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('HOST STATE CHECK PASS', result.stdout)
+            self.assertIn('NOT VERIFIED', result.stdout)
 
     def test_workflow_zip_digest_is_relative_to_artifact_root(self):
         """The uploaded sha256.txt must verify after download into Dist/."""
