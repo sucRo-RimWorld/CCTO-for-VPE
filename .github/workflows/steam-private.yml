@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       create_new_item:
-        description: 'True only for the FIRST private item; otherwise keep false to update the saved ID'
+        description: 'Creation disabled for the existing item; must remain false'
         type: boolean
         default: false
         required: true
@@ -47,7 +47,8 @@ jobs:
           [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && "$GITHUB_REF" == 'refs/heads/main' ]] || exit 2
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]] || exit 2
           if [[ "$REQUESTED_MODE" == 'upload_private' ]]; then
-            [[ "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
+            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
+            # Creation disabled: update the author-selected existing Workshop item only.
           elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' ]]; then
             [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
@@ -73,7 +74,7 @@ jobs:
           CCTO_SOURCE_ROOT: .ccto-base
           CCTO_PARITY_REQUIRED: '1'
         run: python -m unittest discover -s Tests -p 'test_*.py' -v
-      - name: Build exactly six subscriber files
+      - name: Build exactly seven subscriber files
         run: |
           python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
           python Scripts/steamcmd_private.py --zip Dist/CCTO-for-VPE-0.1.0.zip
@@ -142,8 +143,7 @@ jobs:
           set -euo pipefail
           # CCTO_STEAMCMD_BIN, CCTO_STEAM_ACCOUNT and CCTO_STEAM_STATE
           # must already be configured LOCALLY on the isolated runner.
-          flags=()
-          if [[ "$CREATE_NEW" == 'true' ]]; then flags+=(--create-new); fi
+          [[ "$CREATE_NEW" == 'false' ]] || exit 2
           python3 Scripts/steamcmd_private.py \
             --zip Dist/CCTO-for-VPE-0.1.0.zip \
-            --execute --confirm "$CONFIRMATION" "${flags[@]}"
+            --execute --confirm "$CONFIRMATION"
