@@ -32,6 +32,47 @@ that mention YADA as an ongoing uploader or initial new-item creation.
 
 **Decision (2026-10-13):** Uploads orchestrated from ChatGPT/GitHub Actions must **create or update only an author-private** RimWorld Workshop item; public publication requires a separate explicit author decision and a different process. This is a scoped **CCTO for VPE** publisher, not a change to the Project shared native RimWorld test-host architecture and not evidence of Steam login/upload. Game testing remains author-waived for this optional addon.
 
+## 2026-10-15 organization-shared SteamCMD publisher migration
+
+**Decision:** One dedicated SteamCMD Linux/WSL host/runner may service multiple
+author-owned AMJ Workshop Mods. The existing CCTO for VPE publisher is the
+migration source; **do not add a second persistent OS runner per Mod**.
+Keep the existing `steamcmd-private-publisher` job label, existing CCTO
+state checks, and published item ID `3819497323` exactly as they are.
+The LWM Fuel Filter Fix owner uses the same label for its own manual workflow
+but keeps separate `LWM_STEAM_STATE` and initial private-only creation
+policy. CCTO remains *update-only*.
+
+This requires an actual GitHub organization-level runner registration:
+a runner registered to `CCTO-for-VPE` cannot serve LWM merely because
+its labels match. When the organization owner's runner administration is
+available, use a restricted organization runner group (or carefully
+verified Default group when the plan does not permit custom groups),
+allow public repositories only as explicitly required, select the
+two repositories, and restrict to these reviewed main-only workflows
+where supported:
+
+- `sucRo-RimWorld/CCTO-for-VPE/.github/workflows/steam-private.yml@refs/heads/main`
+- `sucRo-RimWorld/LWM-s-Fuel-Filter-Fix/.github/workflows/steam-private.yml@refs/heads/main`
+
+GitHub organization management and the protected
+`steam-workshop-private` environment are **not changed by code or docs**.
+Before migration stop the existing publisher agent and save its on-host
+state; remove the old *repository* runner registration, then register the
+same isolated service host once against the organization. Do not run
+two agents from one workspace or share access with ordinary PR/native
+test workflows. Maintain separate host-local CCTO/LWM state files
+(0700 parent, 0600 file) and immutable per-repo source/payload checks.
+The SteamCMD binary and logged-in publisher account may be shared, but
+are one security/trust boundary; only trusted main publisher workflows
+may execute and each protected environment must be configured separately.
+
+**Gate:** Preserve CCTO's existing repo-runner configuration/operation
+until an organization runner and access policy are verified. Do not
+attempt a live upload or claim LWM hosting based on a matching label.
+The migration changes no Steam item, tags, author-private visibility,
+credentials, CCTO's source/ZIP, or native gameplay behavior.
+
 ## Implementation and safety gates
 
 - `.github/workflows/steam-private.yml` is **manual `workflow_dispatch` only**, never push or pull-request triggered. Default **`preflight`** mode runs source tests, reviews the current eight-file subscriber ZIP and prepares a VDF with **private visibility `2`** without Steam access.
