@@ -38,6 +38,24 @@ PlantBalance.json owns added numerical decisions; [SixCustomClassBalance](Resear
 
 ## VPE-STEAMCMD-PRIVATE-PUBLISHER-20261013
 
+**2026-10-15 shared-organization runner direction (NOT DEPLOYED):**
+Author chose to share the existing dedicated CCTO SteamCMD publisher OS/runner
+with LWM's Fuel Filter Fix and future authorized Mods, rather than register
+one OS runner per repository. CCTO workflow already uses the common
+`steamcmd-private-publisher` label; LWM uses the same label after its
+owner PR, with **separate local item state** and private-only initial creation.
+GitHub Organization runner registration/runner-group selected-repository
+and main-workflow access, public-repository permission, protected
+environments and host provisioning **remain unverified and not changed**.
+Do not mistake a matching `runs-on` label for actual cross-repo access.
+Keep CCTO's existing runner and ID `3819497323` intact until an
+administrator migrates the isolated host safely, then validate both
+read-only host checks. This handoff is owned by Project shared publishing
+infrastructure; formal operations are documented in
+`Docs/SteamCMDPrivatePublishing.md`.
+
+
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
