@@ -80,6 +80,24 @@ Do not repeat the failed Action until the guard's prerequisites are met.
 Historical 2026-10-15 org registration notes below are superseded by the
 actual 2026-10-16 org group migration recorded in the Project coordination.
 
+**2026-10-16 later author-executed Steam/host read-only evidence — PUBLISHER HARD HOLD:**
+Steam published-item details API for retained ID `3819497323` returned
+`result=1`, correct title `CCTO for VPE`, but **`visibility=0` (PUBLIC)**,
+not the private-only updater's accepted `2`. On the real WSL publisher,
+`schema_version=1` and `appid=294100` checks PASS, state file mode `0600`
+PASS, but saved `publishedfileid` **does not match** `3819497323` and
+`private_verified` is false. Saved different ID's value/identity is not
+known. The earlier Action #38894253980 stopped on false `private_verified`
+before comparing expected ID, so these are distinct blockers.
+No state, Steam listing, tag or credential change performed or authorized.
+**No reruns/flags bypass/ID rewrites/private visibility changes/uploads.**
+Read-only inspect the unknown saved numeric ID and correlate Steam ownership,
+then obtain an explicit author choice of public update route vs separate
+private staging before any publisher implementation change. Canonical
+safety policy and evidence: `Docs/SteamCMDPrivatePublishing.md`.
+Historical earlier reported PRIVATE visibility is superseded by this
+later direct API read-back for the retained ID.
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
