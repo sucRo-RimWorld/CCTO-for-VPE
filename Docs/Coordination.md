@@ -114,6 +114,25 @@ enable automatic publication, or test a real upload. Reconcile only after
 the other numeric item and account ownership are verified. This status
 supersedes previous proposed instructions to force the public item PRIVATE.
 
+**2026-10-16 later author-run reconciliation — REPORTED SUCCESS, INDEPENDENT CHECK PENDING:**
+Steam API returned `result=9` for old saved ID `3819486090` (not
+retrievable; original owner unknown) and `result=1` for intended public
+`3819497323` (creator `76561198327679674`, AppID 294100,
+`visibility=0`). Author executed the scoped
+`Reconcile-CctoPublisherState.ps1` locally and reported
+`BACKUP_OK` with SHA-256
+`bb7acf56d6f164e7d6a13a5ae82e1ebe84c1a43f742dd6d03d6bd98c3f0aae2c`,
+`CCTO_STATE_RECONCILED saved_id=3819497323`,
+`PUBLISHER_SERVICE_ACTIVE and LWM_ENV_PRESERVED`, and
+`NO_STEAM_UPLOAD_NO_TAG_CHANGE`. This supersedes the preceding
+mismatch **as an author-reported host correction**; it does NOT prove an
+independent `publisher_state_check` PASS or authenticated Steam publisher
+ownership. **NEXT:** run one nonpublishing protected
+`publisher_state_check` at current exact main SHA, not a Steam upload,
+tag sync or public-visibility change. Owner runbook and release checklist
+hold the current accepted procedure; the old state remains backed up
+host-locally. No Steam-side change.
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
