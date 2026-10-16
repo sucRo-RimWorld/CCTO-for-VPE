@@ -26,10 +26,12 @@
   (`BACKUP_OK`, `CCTO_STATE_RECONCILED`, publisher service active,
   LWM environment preserved, no Steam mutations). Old state retained
   as a host-only backup; no claim about its creator or deletion.
-- [ ] **Independent host gate pending:** perform only one manual protected
-  `publisher_state_check` on the currently running WSL publisher and
-  confirm exact AppID/retained ID/permissions. Do not treat author-script
-  output as this separate Actions PASS.
+- [x] **Independent protected host gate PASS:** real WSL
+  `publisher_state_check` in [Actions #38909387435](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38909387435)
+  confirmed AppID, exact retained Workshop ID `3819497323` and private
+  file permissions. Source `56f33c7bfb9e19648552d0db1ec9b458688ff4c5`,
+  preflight PASS, `update_existing` and `sync_tags` SKIPPED. This is the
+  final gate for the state-file repair only; no Steam-side upload proof.
 - [ ] Confirm the logged-in SteamCMD publisher account actually owns
   `3819497323` (public API creator alone does not authenticate local login).
 - [ ] Do not dispatch `update_existing` as part of state repair. A future

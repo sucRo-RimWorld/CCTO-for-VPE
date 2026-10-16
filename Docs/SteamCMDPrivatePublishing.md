@@ -28,8 +28,11 @@ The initial private-creation workflow for a different Mod (LWM) is separate.
   `3819486090` was preserved in a backup and the active CCTO state was
   rewritten to retained `3819497323`. The author-run script reported
   `CCTO_STATE_RECONCILED` and service/LWM environment restoration. This
-  is host-script output, not yet an independent GitHub Actions host check.
-  Never assume a local log establishes Steam login, ownership or upload.
+  is author-run host repair evidence. Independent protected
+  [Actions #38909387435](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38909387435)
+  subsequently PASSED the actual WSL `publisher_state_check`, confirming
+  current schema/AppID/retained ID and file permissions. Neither result
+  establishes Steam login, ownership or upload.
 - Immediately before contacting SteamCMD, the uploader queries the live
   Steam published-item details API. It requires success `result=1`, pinned
   exact ID, title, RimWorld AppID (when present), numeric `visibility=0`,
@@ -61,23 +64,23 @@ The initial private-creation workflow for a different Mod (LWM) is separate.
 **Neither contacts Steam or proves public visibility.** Run these when
 provisioning changes or troubleshooting, not before every routine release.
 Steam-side identity and visibility are checked automatically by the uploader
-on an authorized update. An initial owner/duplicate-item audit is still
-was completed by host-side reconciliation; an independent state check
-remains pending and is not a routine repeated diagnostic.
+on an authorized update. The one-time host reconciliation and independent
+`publisher_state_check` are complete. Do not repeat diagnostics as a
+routine publication prerequisite.
 
 ### Evidence and stop conditions
 
 - GitHub source checks and mock tests do **not** prove a live Steam update.
-- Existing public item `3819497323` has author-confirmed API read-back,
-  and the host state was later reconciled by the author; **independent
-  `publisher_state_check` validation is pending**.
+- Existing public item `3819497323` has author-confirmed Steam API
+  read-back and reconciled publisher state; independent protected
+  `publisher_state_check` **PASS** in [run #38909387435](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38909387435).
 - **No upload, tag mutation, publication switch, host state rewrite,
   or duplicate item creation** is authorized by the source revision.
 - Valve reference:
   https://partner.steamgames.com/doc/features/workshop/implementation
   (SteamCMD VDF updates only specified keys).
 
-## 2026-10-16 CCTO state reconciled on author host — independent check pending
+## 2026-10-16 CCTO state reconciled — protected host check PASS
 
 **Later author-provided execution output supersedes the earlier ACTIVE state-ID
 mismatch HOLD in this runbook** (earlier discovery remains historical):
@@ -91,19 +94,20 @@ mismatch HOLD in this runbook** (earlier discovery remains historical):
   `CCTO_STATE_RECONCILED saved_id=3819497323`;
   `PUBLISHER_SERVICE_ACTIVE and LWM_ENV_PRESERVED`;
   `NO_STEAM_UPLOAD_NO_TAG_CHANGE`.
-- These are **author-executed outputs**, not independent GitHub Actions
-  validation. The backup remains host-local; never publish its path or bytes.
-  Source code, public visibility, credentials, LWM state and gameplay were
-  not modified by this operation as reported.
-- Next narrow, nonpublishing acceptance: dispatch **exactly one**
-  `publisher_state_check` through
-  [CCTO Actions](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/workflows/steam-private.yml)
-  from current `main` SHA with `create_new_item=false`,
-  empty `confirmation`. Approve the protected environment if required.
-  Inspect whether the state check reads the **actual current
-  `CCTO_STEAM_STATE`** and passes. The state check does NOT prove
+- These are **author-executed repair outputs**. The host-local backup
+  remains private; never publish its path or bytes. Source code, public
+  visibility, credentials, LWM state and gameplay were not modified by
+  this repair as reported.
+- **Independent host check completed:** protected manual
+  [Actions #38909387435](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38909387435)
+  at source SHA `56f33c7bfb9e19648552d0db1ec9b458688ff4c5`
+  finished `success`. Both `preflight` and real WSL
+  `publisher_state_check` were successful, and the latter logged
+  `HOST STATE CHECK PASS: saved AppID, retained Workshop ID and file permissions`
+  for ID `3819497323`. `update_existing`, `sync_tags`, `runner_check`,
+  and `tag_runner_check` were **SKIPPED**. The state check does NOT prove
   Steam ownership, actual upload, downloaded subscriber bytes or current
-  Steam-side visibility. Do not run `update_existing` or tag sync.
+  Steam-side visibility. No further state diagnostic needed now.
 - A separate future upload still requires manual author authorization,
   authenticated SteamCMD account-owner verification against Steam
   creator `76561198327679674`, and its own source/payload/post-upload checks.
