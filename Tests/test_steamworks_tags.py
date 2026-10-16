@@ -30,7 +30,7 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
 
     def test_current_source_tags_and_identity(self):
         self.assertEqual(expected_metadata(ROOT), ('Mod', '1.6'))
-        self.assertEqual(CONFIRM, 'TAGS_PRIVATE_ONLY')
+        self.assertEqual(CONFIRM, 'TAGS_EXISTING_ONLY')
         self.assertIn('対応バージョン', NOTE)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -71,7 +71,7 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
                       'submitResult': 'OK', 'timedOut': False,
                       'userNeedsToAcceptWorkshopLegalAgreement': False,
                       'tags': ['Mod', '1.6']}
-            with patch('steamworks_tags.run_agent', side_effect=[probe, submit]) as mock:
+            with patch('steamworks_tags.verify_live_public_item', return_value='76561198000000000'), patch('steamworks_tags.run_agent', side_effect=[probe, submit]) as mock:
                 response = sync(checkout, agent, receipt, CONFIRM)
                 self.assertIn('SUBMITTED', response)
                 self.assertEqual(mock.call_count, 2)
@@ -93,7 +93,7 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
             os.chmod(agent, 0o700)
             receipt = parent / 'receipt.json'
             with self.assertRaisesRegex(ValueError, 'confirmation'):
-                sync(checkout, agent, receipt, 'PRIVATE_ONLY')
+                sync(checkout, agent, receipt, 'UPDATE_EXISTING_ONLY')
             with patch('steamworks_tags.run_agent', return_value={
                 'ready': False, 'steamUserLoggedOn': False, 'steamAppId': 294100,
             }) as mock:
@@ -102,7 +102,7 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
                 self.assertEqual(mock.call_count, 1)
                 self.assertFalse(receipt.exists())
 
-            with patch('steamworks_tags.run_agent', side_effect=[
+            with patch('steamworks_tags.verify_live_public_item', return_value='76561198000000000'), patch('steamworks_tags.run_agent', side_effect=[
                 {'ready': True, 'steamUserLoggedOn': True, 'steamAppId': 294100},
                 {'success': True, 'publishedFileId': 55555, 'steamAppId': 294100,
                  'steamUserLoggedOn': True, 'submitResult': 'OK',
@@ -132,10 +132,10 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
                       'submitResult': 'OK', 'timedOut': False,
                       'userNeedsToAcceptWorkshopLegalAgreement': False,
                       'tags': ['Mod', '1.6']}
-            with patch('steamworks_tags.run_agent', side_effect=[probe, result]):
+            with patch('steamworks_tags.verify_live_public_item', return_value='76561198000000000'), patch('steamworks_tags.run_agent', side_effect=[probe, result]):
                 self.assertIn('SUBMITTED', sync(checkout, agent, receipt, CONFIRM))
             self.assertEqual(json.loads(receipt.read_text())['context'], 'tag-only')
-            with patch('steamworks_tags.run_agent', side_effect=[probe, result]) as mock:
+            with patch('steamworks_tags.verify_live_public_item', return_value='76561198000000000'), patch('steamworks_tags.run_agent', side_effect=[probe, result]) as mock:
                 self.assertIn('SUBMITTED', sync(checkout, agent, receipt, CONFIRM,
                                                 after_upload_run_id='38514882923'))
                 self.assertEqual(mock.call_count, 2)
@@ -179,7 +179,7 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
         self.assertIn('RunRegisteredRunner', launcher)
         self.assertNotIn('workshop_build_item', launcher)
         self.assertNotIn('set-tags', launcher)
-        self.assertNotIn('PRIVATE_ONLY', launcher)
+        self.assertNotIn('UPDATE_EXISTING_ONLY', launcher)
 
     def test_agent_json_envelope_strict(self):
         from subprocess import CompletedProcess
@@ -194,18 +194,18 @@ class WorkshopSteamworksTagTests(unittest.TestCase):
 
     def test_workflow_has_manual_and_automatic_authenticated_tag_jobs(self):
         workflow = (ROOT / '.github/workflows/steam-private.yml').read_text()
-        self.assertIn('          - sync_tags_private', workflow)
+        self.assertIn('          - sync_tags_existing', workflow)
         self.assertIn('          - tag_runner_check', workflow)
-        self.assertIn("CONFIRMATION\" == 'TAGS_PRIVATE_ONLY'", workflow)
+        self.assertIn("CONFIRMATION\" == 'TAGS_EXISTING_ONLY'", workflow)
         check_job = workflow.split('  tag_runner_check:\n', 1)[1].split('  sync_tags:\n', 1)[0]
         self.assertIn('Scripts/steamworks_tags.py --probe', check_job)
         self.assertNotIn('--sync --confirm', check_job)
         job = workflow.split('  sync_tags:\n', 1)[1]
-        self.assertIn('needs: [preflight, upload_private]', job)
-        self.assertIn('needs.upload_private.result == \'success\'', job)
+        self.assertIn('needs: [preflight, update_existing]', job)
+        self.assertIn('needs.update_existing.result == \'success\'', job)
         self.assertIn('runs-on: [self-hosted, windows, steamworks-tag-publisher]', job)
         self.assertIn('environment: steam-workshop-private', job)
-        self.assertIn('python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY', job)
+        self.assertIn('python Scripts/steamworks_tags.py --sync --confirm TAGS_EXISTING_ONLY', job)
         self.assertIn('--after-upload-run-id', job)
         self.assertIn('LASTEXITCODE', job)
         self.assertNotIn('workshop_build_item', job)

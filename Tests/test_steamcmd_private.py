@@ -1,4 +1,5 @@
 """Offline publisher security regression tests. Never contact Steam in CI."""
+import io
 import json
 import os
 from pathlib import Path
@@ -6,14 +7,15 @@ import stat
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'Scripts'))
 from build_release import create_zip, FILES, FOLDER, EXPECTED_WORKSHOP_ID
 from steamcmd_private import (
-    APPID, VISIBILITY, check_existing_host_state, check_state_path, load_published_id,
-    current_changenote, make_vdf, read_updated_id, run_upload,
+    APPID, EXPECTED_VISIBILITY, check_existing_host_state, check_state_path, load_published_id,
+    current_changenote, make_vdf, read_updated_id, run_upload, verify_live_public_item,
     validate_zip_and_copy, vdf_quote, workshop_tags,
 )
 
@@ -75,24 +77,26 @@ class SteamCMDPrivateContract(unittest.TestCase):
             fake.write_text('#!/bin/sh\nexit 0\n')
             os.chmod(fake, 0o700)
             with self.assertRaisesRegex(ValueError, 'differs from'):
-                run_upload(candidate, ROOT, state, fake, 'localuser', False, 'PRIVATE_ONLY')
+                run_upload(candidate, ROOT, state, fake, 'localuser', False, 'UPDATE_EXISTING_ONLY')
             with self.assertRaisesRegex(ValueError, 'Creation disabled'):
-                run_upload(candidate, ROOT, state, fake, 'localuser', True, 'PRIVATE_ONLY')
+                run_upload(candidate, ROOT, state, fake, 'localuser', True, 'UPDATE_EXISTING_ONLY')
 
-    def test_private_only_and_keyvalues_escaping(self):
+    def test_existing_vdf_preserves_visibility_and_keyvalues_escaping(self):
         raw = make_vdf(Path('/tmp/Example'), Path('/tmp/Example/About/Preview.png'),
-                       'Safe title', 'First line\nSecond "quoted" line', '0.1.0 - First', '0')
+                       'Safe title', 'First line\nSecond "quoted" line',
+                       '0.1.0 - First', EXPECTED_WORKSHOP_ID)
         self.assertIn('"appid" "294100"', raw)
-        self.assertIn('"visibility" "2"', raw)
-        self.assertNotIn('"visibility" "0"', raw)
-        self.assertNotIn('"visibility" "1"', raw)
+        self.assertIn('"publishedfileid" "' + EXPECTED_WORKSHOP_ID + '"', raw)
+        self.assertNotIn('"visibility"', raw)
+        self.assertNotIn('"publishedfileid" "0"', raw)
         self.assertIn('First line\nSecond ' + r'\"quoted\" line', raw)
         self.assertNotIn(r'First line\nSecond', raw)
-        self.assertIn('"publishedfileid" "0"', raw)
         self.assertEqual(APPID, '294100')
-        self.assertEqual(VISIBILITY, '2')
-        with self.assertRaises(ValueError):
-            make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'), 'x', 'desc', 'note', '-1')
+        self.assertEqual(EXPECTED_VISIBILITY, 0)
+        for bad in ('0', '-1', '123456789'):
+            with self.assertRaisesRegex(ValueError, 'exact retained'):
+                make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'),
+                         'x', 'desc', 'note', bad)
         with self.assertRaises(ValueError):
             vdf_quote('a\x00b')
 
@@ -100,12 +104,12 @@ class SteamCMDPrivateContract(unittest.TestCase):
         description = (ROOT / 'Docs/SteamWorkshopDescription.txt').read_text(encoding='utf-8')
         self.assertNotIn(r'\n', description)
         raw = make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'),
-                       'Safe title', description, '0.1.0 - First', '123456789')
+                       'Safe title', description, '0.1.0 - First', EXPECTED_WORKSHOP_ID)
         self.assertIn('"description" "' + description + '"', raw)
         self.assertNotIn(r'\n', raw)
         self.assertEqual(vdf_quote('first\r\nsecond\rthird'), '"first\nsecond\nthird"')
-        self.assertIn('"publishedfileid" "123456789"', raw)
-        self.assertIn('"visibility" "2"', raw)
+        self.assertIn('"publishedfileid" "' + EXPECTED_WORKSHOP_ID + '"', raw)
+        self.assertNotIn('"visibility"', raw)
 
     def test_workflow_cannot_auto_publish_or_change_visibility(self):
         workflow = (ROOT / '.github/workflows/steam-private.yml').read_text(encoding='utf-8')
@@ -117,7 +121,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('steamcmd-private-publisher', workflow)
         self.assertIn('environment: steam-workshop-private', workflow)
         self.assertIn('refs/heads/main', workflow)
-        self.assertIn('PRIVATE_ONLY', workflow)
+        self.assertIn('UPDATE_EXISTING_ONLY', workflow)
         self.assertNotIn('upload_public', workflow)
 
 
@@ -160,7 +164,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
         self.assertIn('"$REQUESTED_MODE" == \'publisher_state_check\'', auth)
         self.assertIn('"$CREATE_NEW" == \'false\' && -z "$CONFIRMATION"', auth)
         check = workflow.split('  publisher_state_check:\n', 1)[1].split(
-            '  upload_private:\n', 1)[0]
+            '  update_existing:\n', 1)[0]
         self.assertIn("if: ${{ inputs.mode == 'publisher_state_check' }}", check)
         self.assertIn('needs: preflight', check)
         self.assertIn('runs-on: [self-hosted, linux, steamcmd-private-publisher]', check)
@@ -173,7 +177,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
             self.assertNotIn(forbidden, check)
 
     def test_read_only_publisher_host_state_guard(self):
-        """Correct private state passes without mutation; mismatches fail closed."""
+        """Retained ID is checked independently of legacy private flag."""
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             state = folder / 'publisher.json'
@@ -190,10 +194,12 @@ class SteamCMDPrivateContract(unittest.TestCase):
             check_existing_host_state(state, ROOT)
             self.assertEqual(state.read_bytes(), saved)
             self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o600)
+            legacy_false = dict(good, private_verified=False)
+            set_state(legacy_false)
+            check_existing_host_state(state, ROOT)
             for field, value in (
                 ('appid', '99999'),
                 ('publishedfileid', '3819486090'),
-                ('private_verified', False),
                 ('schema_version', 999),
             ):
                 bad = dict(good)
@@ -251,7 +257,7 @@ class SteamCMDPrivateContract(unittest.TestCase):
         producer = workflow.split('      - name: Build exactly eight subscriber files', 1)[1].split(
             '      - name: Retain candidate for publisher job and auditing', 1)[0]
         consumer = workflow.split('      - name: Verify candidate artifact digest and reviewed source before invoking SteamCMD', 1)[1].split(
-            '      - name: SteamCMD private-only create/update', 1)[0]
+            '      - name: SteamCMD update existing item without changing visibility', 1)[0]
         self.assertIn('cd Dist && sha256sum CCTO-for-VPE-0.1.0.zip > sha256.txt', producer)
         self.assertIn('cd Dist', consumer)
         self.assertIn('sha256sum -c sha256.txt', consumer)
@@ -281,21 +287,19 @@ class SteamCMDPrivateContract(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state = Path(tmp) / 'private-item.json'
             check_state_path(state, ROOT)
-            with self.assertRaisesRegex(ValueError, 'explicitly authorized'):
+            with self.assertRaisesRegex(ValueError, 'No saved Workshop ID'):
                 load_published_id(state, create_new=False)
-            self.assertEqual(load_published_id(state, create_new=True), '0')
+            with self.assertRaisesRegex(ValueError, 'Creation disabled'):
+                load_published_id(state, create_new=True)
             state.write_text(json.dumps({'schema_version': 1, 'appid': APPID,
                                          'publishedfileid': '123456789',
                                          'private_verified': False}), encoding='utf-8')
             os.chmod(state, 0o600)
-            with self.assertRaisesRegex(ValueError, 'duplicate'):
+            with self.assertRaisesRegex(ValueError, 'Creation disabled'):
                 load_published_id(state, create_new=True)
-            with self.assertRaisesRegex(ValueError, 'confirm'):
-                load_published_id(state, create_new=False)
-            data = json.loads(state.read_text())
-            data['private_verified'] = True
-            state.write_text(json.dumps(data), encoding='utf-8')
             self.assertEqual(load_published_id(state, create_new=False), '123456789')
+            with self.assertRaisesRegex(ValueError, 'differs from retained'):
+                check_existing_host_state(state, ROOT)
             os.chmod(state, 0o644)
             with self.assertRaisesRegex(ValueError, '0600'):
                 check_state_path(state, ROOT)
@@ -336,7 +340,32 @@ class SteamCMDPrivateContract(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'byte-for-byte'):
                     validate_zip_and_copy(evil, ROOT, Path(stage))
 
-    def test_mock_steamcmd_updates_existing_private_item_only(self):
+    def test_public_item_api_guards_identity_visibility_and_creator(self):
+        good = {'response': {'publishedfiledetails': [{
+            'result': 1, 'publishedfileid': EXPECTED_WORKSHOP_ID,
+            'title': 'CCTO for VPE', 'consumer_app_id': 294100,
+            'visibility': 0, 'creator': '76561198000000000',
+        }]}}
+        with patch('steamcmd_private.urlrequest.urlopen',
+                   return_value=io.BytesIO(json.dumps(good).encode())):
+            self.assertEqual(verify_live_public_item(), '76561198000000000')
+        for field, value in [
+            ('visibility', 2), ('visibility', 1), ('visibility', None),
+            ('publishedfileid', '0'), ('result', 9),
+            ('creator', ''), ('consumer_app_id', 99999),
+            ('title', 'Unrelated'),
+        ]:
+            bad = json.loads(json.dumps(good))
+            bad['response']['publishedfiledetails'][0][field] = value
+            with patch('steamcmd_private.urlrequest.urlopen',
+                       return_value=io.BytesIO(json.dumps(bad).encode())):
+                with self.assertRaisesRegex(ValueError, 'verification failed', msg=field):
+                    verify_live_public_item()
+        with patch('steamcmd_private.urlrequest.urlopen', side_effect=OSError('DNS')):
+            with self.assertRaisesRegex(ValueError, 'verification failed'):
+                verify_live_public_item()
+
+    def test_mock_steamcmd_updates_retained_public_item_without_visibility_change(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)
             z = directory / 'candidate.zip'
@@ -346,30 +375,42 @@ class SteamCMDPrivateContract(unittest.TestCase):
 import pathlib, sys
 p = pathlib.Path(sys.argv[sys.argv.index('+workshop_build_item') + 1])
 t = p.read_text(encoding='utf-8')
-assert '"visibility" "2"' in t
+assert '"visibility"' not in t
 assert '"appid" "294100"' in t
 assert '"publishedfileid" "3819497323"' in t
 assert '"publishedfileid" "0"' not in t
 ''', encoding='utf-8')
             os.chmod(fake, 0o700)
             state = directory / 'publisher-private.json'
-            with self.assertRaisesRegex(ValueError, 'approval'):
+            with self.assertRaisesRegex(ValueError, 'confirmation'):
                 run_upload(z, ROOT, state, fake, 'localuser', False, '')
             with self.assertRaisesRegex(ValueError, 'No saved Workshop ID'):
-                run_upload(z, ROOT, state, fake, 'localuser', False, 'PRIVATE_ONLY')
+                run_upload(z, ROOT, state, fake, 'localuser', False, 'UPDATE_EXISTING_ONLY')
             state.write_text(json.dumps({'schema_version': 1, 'appid': APPID,
                                          'publishedfileid': EXPECTED_WORKSHOP_ID,
-                                         'private_verified': True}), encoding='utf-8')
+                                         'private_verified': False}), encoding='utf-8')
             os.chmod(state, 0o600)
-            published = run_upload(z, ROOT, state, fake, 'localuser', False, 'PRIVATE_ONLY')
+            with patch('steamcmd_private.verify_live_public_item',
+                       side_effect=['76561198000000000', '76561198000000000']) as api:
+                published = run_upload(z, ROOT, state, fake, 'localuser', False,
+                                       'UPDATE_EXISTING_ONLY')
+                self.assertEqual(api.call_count, 2)
             self.assertEqual(published, EXPECTED_WORKSHOP_ID)
             data = json.loads(state.read_text(encoding='utf-8'))
-            self.assertEqual(data['appid'], '294100')
+            self.assertEqual(data['appid'], APPID)
             self.assertEqual(data['publishedfileid'], EXPECTED_WORKSHOP_ID)
             self.assertFalse(data['private_verified'])
             self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o600)
-            with self.assertRaisesRegex(ValueError, 'confirm'):
-                run_upload(z, ROOT, state, fake, 'localuser', False, 'PRIVATE_ONLY')
+            with patch('steamcmd_private.verify_live_public_item',
+                       side_effect=ValueError('visibility changed')) as api:
+                with self.assertRaisesRegex(ValueError, 'visibility changed'):
+                    run_upload(z, ROOT, state, fake, 'localuser', False, 'UPDATE_EXISTING_ONLY')
+                self.assertEqual(api.call_count, 1)
+            with patch('steamcmd_private.verify_live_public_item',
+                       side_effect=['76561198000000000', '76561198000000001']):
+                with self.assertRaisesRegex(RuntimeError, 'creator changed'):
+                    run_upload(z, ROOT, state, fake, 'localuser', False, 'UPDATE_EXISTING_ONLY')
+
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict PRIVATE-only SteamCMD UGC staging/upload; author-runner credentials stay on host."""
+"""Existing Workshop item updater; preserve public visibility and host-only Steam credentials."""
 from __future__ import annotations
 
 import argparse
@@ -14,12 +14,13 @@ import sys
 import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
+from urllib import parse as urlparse, request as urlrequest
 
 from build_release import FILES, FOLDER, EXPECTED_WORKSHOP_ID, check_zip
 
 ROOT = Path(__file__).resolve().parents[1]
 APPID = '294100'
-VISIBILITY = '2'  # Steamworks enum: Private, visible only to creator
+EXPECTED_VISIBILITY = 0  # Existing item is PUBLIC; never set VDF visibility.
 STATE_SCHEMA = 1
 TITLE_LIMIT = 128
 DESC_BYTE_LIMIT = 8000
@@ -103,14 +104,13 @@ def validate_zip_and_copy(zip_path: Path, checkout: Path, stage: Path) -> tuple[
 def make_vdf(content: Path, preview: Path, title: str, description: str,
              changenote: str, published_id: str) -> str:
     """No caller can choose public/friends/unlisted visibility or app ID."""
-    if not re.fullmatch(r'0|[1-9][0-9]{0,19}', published_id):
-        raise ValueError('Invalid PublishedFileId')
+    if published_id != EXPECTED_WORKSHOP_ID:
+        raise ValueError('Existing-item VDF requires the exact retained PublishedFileId')
     fields = {
         'appid': APPID,
         'publishedfileid': published_id,
         'contentfolder': str(content.resolve()),
         'previewfile': str(preview.resolve()),
-        'visibility': VISIBILITY,
         'title': title,
         'description': description,
         'changenote': changenote,
@@ -123,6 +123,39 @@ def read_updated_id(text: str) -> str:
     if not match or not match.group(1).isdigit() or int(match.group(1)) <= 0:
         raise ValueError('SteamCMD did not write back a nonzero PublishedFileId')
     return match.group(1)
+
+
+def verify_live_public_item() -> str:
+    """Read Steam's live item details and fail closed on unknown visibility.
+
+    This call does not authenticate to Steam or mutate a Workshop item.
+    """
+    endpoint = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
+    body = urlparse.urlencode({
+        'itemcount': '1', 'publishedfileids[0]': EXPECTED_WORKSHOP_ID,
+    }).encode('ascii')
+    request = urlrequest.Request(endpoint, data=body, method='POST')
+    try:
+        with urlrequest.urlopen(request, timeout=20) as response:
+            payload = json.load(response)
+        items = payload['response']['publishedfiledetails']
+        if not isinstance(items, list) or len(items) != 1:
+            raise ValueError('Expected exactly one Workshop item detail')
+        item = items[0]
+        if (str(item.get('result')) != '1'
+                or str(item.get('publishedfileid')) != EXPECTED_WORKSHOP_ID
+                or item.get('title') != 'CCTO for VPE'
+                or str(item.get('consumer_app_id', APPID)) != APPID):
+            raise ValueError('Unexpected Steam Workshop item identity')
+        if type(item.get('visibility')) is not int or item['visibility'] != EXPECTED_VISIBILITY:
+            raise ValueError('Existing item is not PUBLIC (0); update blocked')
+        creator = str(item.get('creator', ''))
+        if not re.fullmatch(r'[1-9][0-9]{0,19}', creator):
+            raise ValueError('Steam Workshop item creator unavailable')
+        return creator
+    except (OSError, KeyError, TypeError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError('Steam Workshop public identity/visibility verification failed: '
+                         + str(exc)) from exc
 
 
 def check_state_path(state: Path, checkout: Path) -> None:
@@ -139,12 +172,10 @@ def check_state_path(state: Path, checkout: Path) -> None:
 
 
 def load_published_id(state: Path, create_new: bool) -> str:
-    if not state.exists():
-        if not create_new:
-            raise ValueError('No saved Workshop ID. First creation must be explicitly authorized with --create-new')
-        return '0'
     if create_new:
-        raise ValueError('An item ID is already saved; refusing to create a duplicate')
+        raise ValueError('Creation disabled: CCTO updates an existing item only')
+    if not state.exists():
+        raise ValueError('No saved Workshop ID; do not create or replace the state automatically')
     obj = json.loads(state.read_text(encoding='utf-8'))
     if not isinstance(obj, dict):
         raise ValueError('Unexpected Steam state document type')
@@ -153,8 +184,6 @@ def load_published_id(state: Path, create_new: bool) -> str:
     existing_id = obj.get('publishedfileid')
     if not isinstance(existing_id, str) or not re.fullmatch(r'[1-9][0-9]*', existing_id):
         raise ValueError('Invalid saved Workshop ID')
-    if obj.get('private_verified') is not True:
-        raise ValueError('Operator must confirm the existing Steam item is PRIVATE before updating')
     return existing_id
 
 
@@ -164,10 +193,9 @@ def check_existing_host_state(state: Path, checkout: Path) -> None:
     saved_id = load_published_id(state, create_new=False)
     if saved_id != EXPECTED_WORKSHOP_ID:
         raise ValueError('Publisher host Workshop ID differs from retained item; no upload permitted')
-    print('HOST STATE CHECK PASS: saved AppID, retained Workshop ID, file permissions, '
-          'and operator private_verified flag')
+    print('HOST STATE CHECK PASS: saved AppID, retained Workshop ID and file permissions')
     print('Workshop item ' + EXPECTED_WORKSHOP_ID
-          + ': HOST FLAG ONLY; actual Steam-side owner/visibility/content NOT VERIFIED')
+          + ': Steam-side owner/visibility/content NOT VERIFIED')
 
 
 def store_state(path: Path, published_id: str, source_hash: str) -> None:
@@ -195,8 +223,8 @@ def store_state(path: Path, published_id: str, source_hash: str) -> None:
 
 def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
                account: str, create_new: bool, confirmation: str) -> str:
-    if confirmation != 'PRIVATE_ONLY':
-        raise ValueError('Missing exact manual private-upload approval phrase')
+    if confirmation != 'UPDATE_EXISTING_ONLY':
+        raise ValueError('Missing exact manual existing-item update confirmation')
     if not re.fullmatch(r'[A-Za-z0-9_]{1,64}', account):
         raise ValueError('Steam login name must be provisioned locally on the publisher host')
     if not executable.is_file() or not os.access(executable, os.X_OK):
@@ -207,13 +235,18 @@ def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
     prev = load_published_id(state, create_new=False)
     if prev != EXPECTED_WORKSHOP_ID:
         raise ValueError('Publisher host Workshop ID differs from the author-selected existing item; refusing upload')
+    # The public item must still be the expected item before SteamCMD runs.
+    initial_creator = verify_live_public_item()
     original_zip_hash = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     # Temporary staging is never under the repo and is deleted after the invocation.
     with tempfile.TemporaryDirectory(prefix='ccto-vpe-steam-private-') as temp:
         stage = Path(temp)
         content, preview, title, description, note = validate_zip_and_copy(zip_path, checkout, stage)
         vdf = stage / 'upload_private.vdf'
-        vdf.write_text(make_vdf(content, preview, title, description, note, prev), encoding='utf-8')
+        rendered = make_vdf(content, preview, title, description, note, prev)
+        if '"visibility"' in rendered:
+            raise ValueError('Visibility must be omitted from existing-item updates')
+        vdf.write_text(rendered, encoding='utf-8')
         os.chmod(vdf, 0o600)
         local_log = stage / 'steamcmd.log'
         # Never pass password, Guard code or GitHub secret in argv, env interpolation or logs.
@@ -241,13 +274,16 @@ def run_upload(zip_path: Path, checkout: Path, state: Path, executable: Path,
         if after is None:
             raise RuntimeError('SteamCMD reported success without a valid PublishedFileId; '
                                'stop and manually check the Workshop before retrying')
-        if prev != '0' and after != prev:
+        if after != prev:
             raise RuntimeError('SteamCMD changed an existing Workshop item ID unexpectedly')
-        print('SteamCMD accepted private-only upload request for Workshop ID ' + after)
+        # A success return is insufficient: independently check the public item.
+        if verify_live_public_item() != initial_creator:
+            raise RuntimeError('Workshop creator changed; inspect Steam before any retry')
+        print('SteamCMD accepted existing-item update for Workshop ID ' + after)
         print('SteamCMD changenote submitted (full current-version block); Steam history NOT VERIFIED')
         print('Workshop tags NOT UPDATED by SteamCMD: Steamworks metadata sync is required ('
               + ', '.join(workshop_tags(ET.fromstring((content / 'About/About.xml').read_bytes()))) + ')')
-        print('Steam-side visibility and downloaded subscriber contents: NOT VERIFIED; author review required')
+        print('Steam API confirmed public visibility unchanged; authenticated owner and downloaded content NOT VERIFIED')
         return after
 
 
@@ -257,7 +293,7 @@ def main() -> int:
     parser.add_argument('--check-host-state', action='store_true',
                         help='Read-only publisher state check; no ZIP, login or upload')
     parser.add_argument('--checkout', type=Path, default=ROOT)
-    parser.add_argument('--execute', action='store_true', help='Actually contact Steam; no implicit upload')
+    parser.add_argument('--execute', action='store_true', help='Explicit existing-item update; contacts Steam')
     parser.add_argument('--confirm', default='', help='Must equal PRIVATE_ONLY for actual uploads')
     parser.add_argument('--create-new', action='store_true', help='Explicit first-time creation, not update')
     args = parser.parse_args()
@@ -277,15 +313,15 @@ def main() -> int:
         with tempfile.TemporaryDirectory() as tmp:
             content, preview, title, description, note = validate_zip_and_copy(
                 args.zip, args.checkout, Path(tmp))
-            raw = make_vdf(content, preview, title, description, note, '0')
-            if '"visibility" "2"' not in raw:
-                raise ValueError('Private visibility guard did not survive VDF generation')
+            raw = make_vdf(content, preview, title, description, note, EXPECTED_WORKSHOP_ID)
+            if '"visibility"' in raw:
+                raise ValueError('Existing-item VDF must not set Workshop visibility')
             tags = workshop_tags(ET.fromstring((content / 'About/About.xml').read_bytes()))
             if note not in raw:
                 raise ValueError('Complete changenote was not staged')
-            print('Offline PRIVATE SteamCMD VDF and exact source ZIP validation PASS; NO UPLOAD')
+            print('Offline visibility-preserving existing-item VDF and source ZIP PASS; NO UPLOAD')
             print('Expected Workshop tags (Steamworks step required): ' + ', '.join(tags))
-            print('Existing target Workshop ID: ' + EXPECTED_WORKSHOP_ID + ' (creation disabled)')
+            print('Existing public Workshop ID: ' + EXPECTED_WORKSHOP_ID + ' (creation disabled; visibility unchanged)')
         return 0
     steamcmd = os.environ.get('CCTO_STEAMCMD_BIN', '')
     account = os.environ.get('CCTO_STEAM_ACCOUNT', '')

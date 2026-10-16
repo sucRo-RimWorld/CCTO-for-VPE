@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync tags only, via authenticated SteamWorkshopAgent (no content upload).
+"""Sync tags for the retained public item via authenticated SteamWorkshopAgent (no content upload).
 
 Only use on the dedicated, logged-in desktop Steamworks runner. Does not
 create Workshop items, update their visibility, or use SteamCMD credentials.
@@ -19,11 +19,11 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 from build_release import EXPECTED_WORKSHOP_ID
-from steamcmd_private import APPID, workshop_tags
+from steamcmd_private import APPID, verify_live_public_item, workshop_tags
 
 ROOT = Path(__file__).resolve().parents[1]
 NOTE = 'Update RimWorld compatibility tags / 対応バージョンのタグ更新'
-CONFIRM = 'TAGS_PRIVATE_ONLY'
+CONFIRM = 'TAGS_EXISTING_ONLY'
 
 
 def expected_metadata(checkout: Path) -> tuple[str, ...]:
@@ -126,7 +126,7 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str,
          after_upload_run_id: str | None = None) -> str:
     tags = expected_metadata(checkout)
     if confirmation != CONFIRM:
-        raise ValueError('Explicit TAGS_PRIVATE_ONLY confirmation required')
+        raise ValueError('Explicit TAGS_EXISTING_ONLY confirmation required')
     if not agent.is_file() or not os.access(agent, os.X_OK):
         raise ValueError('SteamWorkshopAgent executable is not provisioned')
     if checkout.resolve() == agent.resolve() or checkout.resolve() in agent.resolve().parents:
@@ -141,6 +141,7 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str,
         return 'SKIPPED: same tags and operation have a local OK receipt; Steam page not reverified'
 
     check_session(agent)
+    initial_creator = verify_live_public_item()
     # Intent is durable before the potentially ambiguous Steam submission.
     # An aborted/crashed run remains PENDING and cannot silently retry.
     _store_receipt(receipt, tags, result='PENDING', context=context)
@@ -158,8 +159,10 @@ def sync(checkout: Path, agent: Path, receipt: Path, confirmation: str,
             or result.get('tags') != list(tags)):
         # Do not retry on an ambiguous result: Steam may have accepted it.
         raise RuntimeError('Steamworks tag submit result unverified; inspect Steam before retrying')
+    if verify_live_public_item() != initial_creator:
+        raise RuntimeError('Steam Workshop creator changed after tag submission')
     _store_receipt(receipt, tags, context=context)
-    return 'SUBMITTED: tag update acknowledged by Steamworks; remote Workshop page not verified'
+    return 'SUBMITTED: tags accepted; Steam API confirmed public visibility unchanged'
 
 
 def main() -> int:

@@ -1,5 +1,78 @@
 # CCTO for VPE — PRIVATE-ONLY SteamCMD Workshop publishing
 
+## Current policy — existing PUBLIC item update, no visibility change (2026-10-16)
+
+**This section supersedes all earlier PRIVATE-only publishing instructions below.**
+The author's actual Steam read-back for retained Workshop item
+`3819497323` returned `result=1`, title `CCTO for VPE`,
+`visibility=0` (PUBLIC). Do not change its public status as a side effect
+of content or tag maintenance. New item creation remains disabled.
+The initial private-creation workflow for a different Mod (LWM) is separate.
+
+### Normal existing-item update (not executed by this change)
+
+- `main` source and 8-file candidate are checked on GitHub-hosted CI;
+  actual Steam publication remains **manual**.
+- The operator dispatches `steam-private.yml` from exact current `main` SHA
+  with `mode=update_existing`, `create_new_item=false`,
+  `confirmation=UPDATE_EXISTING_ONLY`, and approves the existing protected
+  `steam-workshop-private` GitHub Environment. The Environment name is
+  historical and refers to the **review-protected credential boundary**,
+  **not** the target item visibility. Renaming that environment would require
+  a separate runner/repository permissions migration.
+- On the trusted WSL publisher, the saved state must have schema `1`,
+  AppID `294100`, saved ID `3819497323`, restricted 0600/0700 permissions,
+  and exist outside checkout. `private_verified` is a **legacy flag** and
+  is **not** a precondition for updating a currently-public item.
+  **The actual currently saved host ID is DIFFERENT, so publication remains
+  BLOCKED until its identity and owner are audited and reconciled safely.**
+  Never overwrite the old state as part of a test, script initialization,
+  or blind retry.
+- Immediately before contacting SteamCMD, the uploader queries the live
+  Steam published-item details API. It requires success `result=1`, pinned
+  exact ID, title, RimWorld AppID (when present), numeric `visibility=0`,
+  and a valid creator SteamID. DNS/API failure, missing fields, or visibility
+  other than `0` must block publication. Steam account ownership still
+  requires independent authenticated creator confirmation; a public
+  details request cannot authenticate the publisher account.
+- SteamCMD VDF includes `appid`, `publishedfileid`, content, preview,
+  description, changenote and title, but **never `visibility`**.
+  Valve's official Workshop SteamCMD guide specifies that only included VDF
+  fields change on an existing item. Do not use a `publishedfileid=0`
+  rehearsal for the existing-item uploader.
+- After SteamCMD success, independently query Steam details again and
+  require public visibility, exact identity and the **same creator ID**.
+  The saved host state retains `private_verified=false` and requires
+  review of the real downloaded package/changenotes. Any uncertain
+  post-submission response is a **HOLD**, not permission for automatic retry.
+- Tag synchronization uses `sync_tags_existing` /
+  `TAGS_EXISTING_ONLY` via the separately authenticated Windows
+  Steamworks agent, either explicitly or following a successful source update.
+  It checks live public visibility before/after tags. Preserve the existing
+  immutable receipt/ambiguity gate; no item creation or visibility change.
+  GitHub Environments may require a separate human approval for this job.
+
+### No-upload diagnostics
+
+`runner_check` checks shared-runner connectivity and the artifact;
+`publisher_state_check` checks the saved AppID, pinned ID and file permissions.
+**Neither contacts Steam or proves public visibility.** Run these when
+provisioning changes or troubleshooting, not before every routine release.
+Steam-side identity and visibility are checked automatically by the uploader
+on an authorized update. An initial owner/duplicate-item audit is still
+necessary for the currently mismatched state, and is not a routine step.
+
+### Evidence and stop conditions
+
+- GitHub source checks and mock tests do **not** prove a live Steam update.
+- Existing public item `3819497323` has author-confirmed API read-back,
+  but the live host saved-ID mismatch is still **unresolved**.
+- **No upload, tag mutation, publication switch, host state rewrite,
+  or duplicate item creation** is authorized by the source revision.
+- Valve reference:
+  https://partner.steamgames.com/doc/features/workshop/implementation
+  (SteamCMD VDF updates only specified keys).
+
 ## 2026-10-16 live Steam visibility and WSL state conflict — NO UPLOAD
 
 **Latest author-executed read-only evidence supersedes the historical
@@ -43,7 +116,7 @@ through Steam's item details, and independently verify ownership before
 deciding what to preserve. A host `private_verified` flag cannot assert
 Steam-side privacy; a public target must not be silently changed.
 
-## Current publisher decision — 2026-10-14 (supersedes historical YADA instructions)
+## Historical 2026-10-14 private-only policy (superseded above)
 
 **Future Workshop uploads must not use YADA.** The author's latest upload
 using YADA is historical; the author reports the tags on the retained item

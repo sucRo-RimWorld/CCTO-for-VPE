@@ -1,9 +1,9 @@
-name: CCTO for VPE SteamCMD private upload
+name: CCTO for VPE existing Workshop update (preserve visibility)
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'preflight / runner_check / publisher_state_check / tag_runner_check / upload_private / sync_tags_private'
+        description: 'preflight / runner_check / publisher_state_check / tag_runner_check / update_existing / sync_tags_existing'
         required: true
         type: choice
         default: preflight
@@ -12,8 +12,8 @@ on:
           - runner_check
           - publisher_state_check
           - tag_runner_check
-          - upload_private
-          - sync_tags_private
+          - update_existing
+          - sync_tags_existing
       exact_main_sha:
         description: 'Exactly 40 hex chars of the approved current main HEAD'
         type: string
@@ -24,13 +24,13 @@ on:
         default: false
         required: true
       confirmation:
-        description: 'PRIVATE_ONLY for upload_private; TAGS_PRIVATE_ONLY for sync_tags_private'
+        description: 'UPDATE_EXISTING_ONLY for update_existing; TAGS_EXISTING_ONLY for sync_tags_existing'
         type: string
         required: false
 permissions:
   contents: read
 concurrency:
-  group: ccto-vpe-steam-private-publishing
+  group: ccto-vpe-steam-existing-publishing
   cancel-in-progress: false
 jobs:
   preflight:
@@ -49,11 +49,11 @@ jobs:
           [[ "$GITHUB_REPOSITORY" == 'sucRo-RimWorld/CCTO-for-VPE' ]] || exit 2
           [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && "$GITHUB_REF" == 'refs/heads/main' ]] || exit 2
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]] || exit 2
-          if [[ "$REQUESTED_MODE" == 'upload_private' ]]; then
-            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'PRIVATE_ONLY' ]] || exit 2
-            # Creation disabled: update the author-selected existing Workshop item only.
-          elif [[ "$REQUESTED_MODE" == 'sync_tags_private' ]]; then
-            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'TAGS_PRIVATE_ONLY' ]] || exit 2
+          if [[ "$REQUESTED_MODE" == 'update_existing' ]]; then
+            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'UPDATE_EXISTING_ONLY' ]] || exit 2
+            # Creation disabled; the retained public item must not change visibility.
+          elif [[ "$REQUESTED_MODE" == 'sync_tags_existing' ]]; then
+            [[ "$CREATE_NEW" == 'false' && "$CONFIRMATION" == 'TAGS_EXISTING_ONLY' ]] || exit 2
           elif [[ "$REQUESTED_MODE" == 'preflight' || "$REQUESTED_MODE" == 'runner_check' || "$REQUESTED_MODE" == 'publisher_state_check' || "$REQUESTED_MODE" == 'tag_runner_check' ]]; then
             [[ "$CREATE_NEW" == 'false' && -z "$CONFIRMATION" ]] || exit 2
           else
@@ -84,7 +84,7 @@ jobs:
           python Scripts/build_release.py --output Dist/CCTO-for-VPE-0.1.0.zip
           python Scripts/steamcmd_private.py --zip Dist/CCTO-for-VPE-0.1.0.zip
           python Scripts/steamworks_tags.py
-          # Hash entries are relative to Dist; upload_private verifies after cd Dist.
+          # Hash entries are relative to Dist; update_existing verifies after cd Dist.
           (cd Dist && sha256sum CCTO-for-VPE-0.1.0.zip > sha256.txt && sha256sum -c sha256.txt)
       - name: Retain candidate for publisher job and auditing
         uses: actions/upload-artifact@v4
@@ -98,7 +98,7 @@ jobs:
   runner_check:
     needs: preflight
     if: ${{ inputs.mode == 'runner_check' }}
-    # Same dedicated host and GitHub environment as upload_private, but no SteamCMD invocation.
+    # Same dedicated host and GitHub environment as update_existing, but no SteamCMD invocation.
     runs-on: [self-hosted, linux, steamcmd-private-publisher]
     environment: steam-workshop-private
     timeout-minutes: 12
@@ -143,9 +143,9 @@ jobs:
           # Never print its path, full JSON, account, token, or credentials.
           python3 Scripts/steamcmd_private.py --check-host-state
 
-  upload_private:
+  update_existing:
     needs: preflight
-    if: ${{ inputs.mode == 'upload_private' }}
+    if: ${{ inputs.mode == 'update_existing' }}
     # Dedicated, isolated publisher host. Do NOT attach this label to general PR/test runners.
     runs-on: [self-hosted, linux, steamcmd-private-publisher]
     environment: steam-workshop-private
@@ -164,7 +164,7 @@ jobs:
           set -euo pipefail
           cd Dist
           sha256sum -c sha256.txt
-      - name: SteamCMD private-only create/update (no credentials in GitHub)
+      - name: SteamCMD update existing item without changing visibility
         shell: bash
         env:
           CREATE_NEW: ${{ inputs.create_new_item }}
@@ -199,11 +199,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Steamworks probe failed' }
 
   sync_tags:
-    needs: [preflight, upload_private]
+    needs: [preflight, update_existing]
     # Supports an explicit tag-only repair and automatically runs after a
     # successful manual SteamCMD update. If the desktop Steam runner is not
     # configured, this job cannot run; NEVER consider upload fully synced.
-    if: ${{ always() && needs.preflight.result == 'success' && (inputs.mode == 'sync_tags_private' || (inputs.mode == 'upload_private' && needs.upload_private.result == 'success')) }}
+    if: ${{ always() && needs.preflight.result == 'success' && (inputs.mode == 'sync_tags_existing' || (inputs.mode == 'update_existing' && needs.update_existing.result == 'success')) }}
     runs-on: [self-hosted, windows, steamworks-tag-publisher]
     environment: steam-workshop-private
     timeout-minutes: 12
@@ -226,18 +226,18 @@ jobs:
           MODE: ${{ inputs.mode }}
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
-          if ($env:MODE -eq 'sync_tags_private') {
-            if ($env:CONFIRMATION -cne 'TAGS_PRIVATE_ONLY') { throw 'Tag approval missing' }
-          } elseif ($env:MODE -eq 'upload_private') {
-            if ($env:CONFIRMATION -cne 'PRIVATE_ONLY') { throw 'Private-upload approval missing' }
+          if ($env:MODE -eq 'sync_tags_existing') {
+            if ($env:CONFIRMATION -cne 'TAGS_EXISTING_ONLY') { throw 'Tag approval missing' }
+          } elseif ($env:MODE -eq 'update_existing') {
+            if ($env:CONFIRMATION -cne 'UPDATE_EXISTING_ONLY') { throw 'Private-upload approval missing' }
           } else {
             throw 'Invalid tag-sync dispatch mode'
           }
           # Host-only vars CCTO_STEAMWORKS_AGENT_BIN and CCTO_STEAM_TAG_RECEIPT.
           # Run the Windows GitHub runner in the INTERACTIVE Steam desktop session.
-          if ($env:MODE -eq 'upload_private') {
-            python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY --after-upload-run-id "$env:GITHUB_RUN_ID"
+          if ($env:MODE -eq 'update_existing') {
+            python Scripts/steamworks_tags.py --sync --confirm TAGS_EXISTING_ONLY --after-upload-run-id "$env:GITHUB_RUN_ID"
           } else {
-            python Scripts/steamworks_tags.py --sync --confirm TAGS_PRIVATE_ONLY
+            python Scripts/steamworks_tags.py --sync --confirm TAGS_EXISTING_ONLY
           }
           if ($LASTEXITCODE -ne 0) { throw 'Steamworks tag update failed' }
