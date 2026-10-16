@@ -1,5 +1,48 @@
 # CCTO for VPE — PRIVATE-ONLY SteamCMD Workshop publishing
 
+## 2026-10-16 live Steam visibility and WSL state conflict — NO UPLOAD
+
+**Latest author-executed read-only evidence supersedes the historical
+private-visibility assumption for this retained item.** Steam
+`ISteamRemoteStorage/GetPublishedFileDetails/v1/` returned
+`result=1`, `publishedfileid=3819497323`, title `CCTO for VPE`,
+and **`visibility=0` (PUBLIC)**. This is a read-back of the retained
+item and is incompatible with the private-only `visibility=2` uploader's
+accepted target assumptions. It does not establish a choice to change the
+current listing's visibility.
+
+Separately, an owner-executed read-only process-environment/state probe
+on the actual isolated WSL publisher found:
+- `schema_version == 1`: true
+- `appid == "294100"`: true
+- saved `publishedfileid == "3819497323"`: **false**
+- `private_verified is True`: **false**
+- state file `0600` permission: true
+
+The numeric value of the saved *different* ID was not printed or verified.
+It may refer to an earlier item, a duplicate, or a stale fixture; no
+identification can be inferred. Prior protected
+[Actions #38894253980](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38894253980)
+attempt 2 reached the same state file and stopped on
+`private_verified` being false **before** its expected-ID comparison.
+The two read-only results are complementary, not contradictory.
+
+**FAIL-CLOSED / HOLD:** do not set `private_verified=true`, alter either
+item's visibility, replace the saved ID/state, dispatch `upload_private`,
+or send `sync_tags` merely to make this test pass. Any future content
+publishing to a public item needs a separate, explicit author decision
+and audited implementation/policy for public updates; the existing
+private-only workflow is **not** such a route. An independently approved
+private-only *different* item would require separate identity, ownership,
+duplicate avoidance, and author approval, not repointing this repository's
+retained ID by default.
+
+Next **read-only** step: inspect the saved numeric ID without exposing
+state paths/account credentials, determine whether it is a real duplicate
+through Steam's item details, and independently verify ownership before
+deciding what to preserve. A host `private_verified` flag cannot assert
+Steam-side privacy; a public target must not be silently changed.
+
 ## Current publisher decision — 2026-10-14 (supersedes historical YADA instructions)
 
 **Future Workshop uploads must not use YADA.** The author's latest upload
