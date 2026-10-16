@@ -104,11 +104,11 @@ class SteamCMDPrivateContract(unittest.TestCase):
         description = (ROOT / 'Docs/SteamWorkshopDescription.txt').read_text(encoding='utf-8')
         self.assertNotIn(r'\n', description)
         raw = make_vdf(Path('/tmp/Example'), Path('/tmp/Preview.png'),
-                       'Safe title', description, '0.1.0 - First', '123456789')
+                       'Safe title', description, '0.1.0 - First', EXPECTED_WORKSHOP_ID)
         self.assertIn('"description" "' + description + '"', raw)
         self.assertNotIn(r'\n', raw)
         self.assertEqual(vdf_quote('first\r\nsecond\rthird'), '"first\nsecond\nthird"')
-        self.assertIn('"publishedfileid" "123456789"', raw)
+        self.assertIn('"publishedfileid" "' + EXPECTED_WORKSHOP_ID + '"', raw)
         self.assertNotIn('"visibility"', raw)
 
     def test_workflow_cannot_auto_publish_or_change_visibility(self):
