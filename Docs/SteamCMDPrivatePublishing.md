@@ -24,10 +24,12 @@ The initial private-creation workflow for a different Mod (LWM) is separate.
   AppID `294100`, saved ID `3819497323`, restricted 0600/0700 permissions,
   and exist outside checkout. `private_verified` is a **legacy flag** and
   is **not** a precondition for updating a currently-public item.
-  **The actual currently saved host ID is DIFFERENT, so publication remains
-  BLOCKED until its identity and owner are audited and reconciled safely.**
-  Never overwrite the old state as part of a test, script initialization,
-  or blind retry.
+  **2026-10-16 later author-run host reconciliation:** the prior saved ID
+  `3819486090` was preserved in a backup and the active CCTO state was
+  rewritten to retained `3819497323`. The author-run script reported
+  `CCTO_STATE_RECONCILED` and service/LWM environment restoration. This
+  is host-script output, not yet an independent GitHub Actions host check.
+  Never assume a local log establishes Steam login, ownership or upload.
 - Immediately before contacting SteamCMD, the uploader queries the live
   Steam published-item details API. It requires success `result=1`, pinned
   exact ID, title, RimWorld AppID (when present), numeric `visibility=0`,
@@ -60,18 +62,51 @@ The initial private-creation workflow for a different Mod (LWM) is separate.
 provisioning changes or troubleshooting, not before every routine release.
 Steam-side identity and visibility are checked automatically by the uploader
 on an authorized update. An initial owner/duplicate-item audit is still
-necessary for the currently mismatched state, and is not a routine step.
+was completed by host-side reconciliation; an independent state check
+remains pending and is not a routine repeated diagnostic.
 
 ### Evidence and stop conditions
 
 - GitHub source checks and mock tests do **not** prove a live Steam update.
 - Existing public item `3819497323` has author-confirmed API read-back,
-  but the live host saved-ID mismatch is still **unresolved**.
+  and the host state was later reconciled by the author; **independent
+  `publisher_state_check` validation is pending**.
 - **No upload, tag mutation, publication switch, host state rewrite,
   or duplicate item creation** is authorized by the source revision.
 - Valve reference:
   https://partner.steamgames.com/doc/features/workshop/implementation
   (SteamCMD VDF updates only specified keys).
+
+## 2026-10-16 CCTO state reconciled on author host — independent check pending
+
+**Later author-provided execution output supersedes the earlier ACTIVE state-ID
+mismatch HOLD in this runbook** (earlier discovery remains historical):
+- Read-only Steam API lookup: old ID `3819486090` returned result `9`
+  (not available from that API); retained `3819497323` returned result
+  `1`, title `CCTO for VPE`, creator `76561198327679674`,
+  visibility `0` (PUBLIC), consumer AppID `294100`.
+  Old item's creator and fate remain unknown; do not delete it.
+- Author invoked `Reconcile-CctoPublisherState.ps1` locally. Output:
+  `BACKUP_OK sha256=bb7acf56d6f164e7d6a13a5ae82e1ebe84c1a43f742dd6d03d6bd98c3f0aae2c`;
+  `CCTO_STATE_RECONCILED saved_id=3819497323`;
+  `PUBLISHER_SERVICE_ACTIVE and LWM_ENV_PRESERVED`;
+  `NO_STEAM_UPLOAD_NO_TAG_CHANGE`.
+- These are **author-executed outputs**, not independent GitHub Actions
+  validation. The backup remains host-local; never publish its path or bytes.
+  Source code, public visibility, credentials, LWM state and gameplay were
+  not modified by this operation as reported.
+- Next narrow, nonpublishing acceptance: dispatch **exactly one**
+  `publisher_state_check` through
+  [CCTO Actions](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/workflows/steam-private.yml)
+  from current `main` SHA with `create_new_item=false`,
+  empty `confirmation`. Approve the protected environment if required.
+  Inspect whether the state check reads the **actual current
+  `CCTO_STEAM_STATE`** and passes. The state check does NOT prove
+  Steam ownership, actual upload, downloaded subscriber bytes or current
+  Steam-side visibility. Do not run `update_existing` or tag sync.
+- A separate future upload still requires manual author authorization,
+  authenticated SteamCMD account-owner verification against Steam
+  creator `76561198327679674`, and its own source/payload/post-upload checks.
 
 ## 2026-10-16 live Steam visibility and WSL state conflict — NO UPLOAD
 
