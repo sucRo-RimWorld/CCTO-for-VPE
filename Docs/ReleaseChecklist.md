@@ -11,6 +11,30 @@
 - [x] Public drafts name **only 20 VPE core plants** as implemented and exclude all optional VPE packs. The optional packs (More Plants, Mushrooms, Succulents, Flowers) stay unsupported until implemented.
 - [x] VPE upstream `main` at `6823417d3aa206880a8cc9fe7c2239f3cb66a78b` has all 20 matching DefNames in `1.6/Defs/ThingDefs_Plants/Plants_Cultivated_Farm.xml` and `Plants_Cultivated_Trees.xml`; all six custom-class identities also match. This is **source inspection, not loaded-game testing**. Beet winter growth and cherry winter blossoms remain noted caveats; do not imply VPE 1.7 support.
 
+## Existing PUBLIC Workshop item — current release gates (2026-10-16)
+
+- [x] Retained Workshop item `3819497323` identified by Steam API as
+  `CCTO for VPE`, public (`visibility=0`). Actual user-provided API
+  read-back; not a claim about downloaded content.
+- [x] Source-only update route defined: exact main SHA, manual dispatch,
+  `UPDATE_EXISTING_ONLY`, expected existing ID, host state + live Steam
+  item checks, no VDF `visibility` key, before/after owner/visibility
+  verification. Offline tests required on the exact revision.
+- [ ] **HOST STATE HOLD:** current publisher has a *different* saved numeric ID,
+  unverified origin; read-only audit and author-approved reconciliation must
+  precede any live content or tag mutation. Do not replace it blindly.
+- [ ] Confirm the logged-in SteamCMD publisher account actually owns
+  `3819497323` (public API creator alone does not authenticate local login).
+- [ ] Authorize and dispatch `update_existing` only when the mismatch is
+  resolved, then verify real published subscriber bytes, owner, title,
+  visibility (still public), version and changenote.
+- [ ] Perform Steamworks tags step only with a separately authorized
+  authenticated desktop runner and current public target checks.
+- [ ] **NO ACTUAL WORKSHOP UPDATE** executed by this source revision.
+  No new Workshop ID or visibility change is part of the release.
+
+### Historical private-only checklist (superseded for retained public item)
+
 ## Optional author-private SteamCMD route
 
 - [x] A GitHub manual-only SteamCMD `preflight`/conditional `upload_private` workflow is implemented for **CCTO for VPE only**. The uploader hardcodes AppID `294100`, visibility `2` (creator-only), source/payload byte matching, existing-ID persistence and refusal of unconfirmed new item creation. See [SteamCMDPrivatePublishing](SteamCMDPrivatePublishing.md). Source-level tests use a mock SteamCMD, not real Steam.
