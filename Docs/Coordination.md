@@ -133,6 +133,20 @@ tag sync or public-visibility change. Owner runbook and release checklist
 hold the current accepted procedure; the old state remains backed up
 host-locally. No Steam-side change.
 
+**2026-10-16 final independent publisher-state validation — VERIFIED / CLOSED FOR STATE REPAIR:**
+Actual protected manual [Actions #38909387435](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38909387435)
+at main `56f33c7bfb9e19648552d0db1ec9b458688ff4c5` completed SUCCESS.
+Hosted `preflight` PASS and WSL `publisher_state_check` PASS; exact
+host log: `HOST STATE CHECK PASS: saved AppID, retained Workshop ID and file permissions`,
+Workshop item `3819497323`. `update_existing`, `sync_tags`,
+`runner_check` and `tag_runner_check` SKIPPED. This independently
+closes the saved-ID mismatch after the author-reported backup/repair
+without changing Steam. No further state diagnostic or native tests
+are needed for this correction. Authenticated SteamCMD account ownership,
+live content upload, remote subscriber payload and post-update visibility
+remain **unverified and separately author-gated**; never claim Workshop
+publication from the source or host-state PASS.
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
