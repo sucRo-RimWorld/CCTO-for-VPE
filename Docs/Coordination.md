@@ -98,6 +98,22 @@ safety policy and evidence: `Docs/SteamCMDPrivatePublishing.md`.
 Historical earlier reported PRIVATE visibility is superseded by this
 later direct API read-back for the retained ID.
 
+**2026-10-16 revised publishing implementation (author-directed source repair;
+no Steam action):** The previous private-only SteamCMD route is incompatible
+with currently-PUBLIC retained item `3819497323`. CCTO now owns a
+visibility-preserving **existing-item update** plan in
+`Docs/SteamCMDPrivatePublishing.md` and `Docs/ReleaseChecklist.md`:
+manual exact-main `update_existing`, no creation, no VDF `visibility`
+field, pinned release/host ID, Steam public item details/creator check
+before and after an actual update, separate tag-sync approval, legacy
+`private_verified` not a public-item gate. Runner/environment account
+isolation and LWM's new-private-item procedure remain unchanged.
+**Operational HOLD:** saved WSL ID differs from `3819497323`;
+do not reinitialize state, infer the saved ID, change public visibility,
+enable automatic publication, or test a real upload. Reconcile only after
+the other numeric item and account ownership are verified. This status
+supersedes previous proposed instructions to force the public item PRIVATE.
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
