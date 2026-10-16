@@ -56,6 +56,30 @@ infrastructure; formal operations are documented in
 
 
 
+**2026-10-16 actual protected WSL state check — HOLD:** The organization-shared
+Steam publisher is online; CCTO nonpublishing `runner_check`
+[Actions #38886985798](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38886985798)
+PASS and LWM nonpublishing `host_check`
+[Actions #38891845003](https://github.com/sucRo-RimWorld/LWM-s-Fuel-Filter-Fix/actions/runs/38891845003)
+PASS. CCTO manual protected `publisher_state_check`
+[Actions #38894253980](https://github.com/sucRo-RimWorld/CCTO-for-VPE/actions/runs/38894253980)
+attempt 1 failed at checkout due temporary GitHub DNS resolution. The targeted
+attempt 2 checkout succeeded and reached `--check-host-state` but exited
+FAIL with `Operator must confirm the existing Steam item is PRIVATE before
+updating`. This is the host state `private_verified` field **not equal to
+boolean true**, not evidence that Steam's actual visibility is public.
+Schema/AppID and syntactically valid saved ID passed their earlier guards,
+but exact retained ID `3819497323` was **not yet compared**, so do not claim
+complete state verification. `preflight` PASS; `upload_private` and
+`sync_tags` SKIPPED, no SteamCMD call or source/payload mutation.
+**Next:** creator-side read-only confirmation of item ownership/private
+visibility, plus protected read-only review of the existing state/ID. Do not
+set the flag merely to make CI pass, invent/replace an item ID, clear the
+state, or authorize an upload without genuine Steam-side verification.
+Do not repeat the failed Action until the guard's prerequisites are met.
+Historical 2026-10-15 org registration notes below are superseded by the
+actual 2026-10-16 org group migration recorded in the Project coordination.
+
 **Owner:** CCTO for VPE publishing (separate from native RimWorld test-host infrastructure).
 **Status:** FIRST PRIVATE UPLOAD SUCCESS; AUTHOR-CONFIRMED PRIVATE VISIBILITY; DESCRIPTION LF AND FULL CHANGE-NOTE SOURCE FIXES MERGED; LIVE METADATA/TAGS AND SUBSCRIBER PAYLOAD UNVERIFIED.
 
