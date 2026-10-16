@@ -20,14 +20,22 @@
   `UPDATE_EXISTING_ONLY`, expected existing ID, host state + live Steam
   item checks, no VDF `visibility` key, before/after owner/visibility
   verification. Offline tests required on the exact revision.
-- [ ] **HOST STATE HOLD:** current publisher has a *different* saved numeric ID,
-  unverified origin; read-only audit and author-approved reconciliation must
-  precede any live content or tag mutation. Do not replace it blindly.
+- [x] **Host-local state reconciliation, author-reported (2026-10-16):**
+  old saved ID `3819486090` returned Steam API result `9`; author ran
+  controlled backup-and-switch to retained public ID `3819497323`
+  (`BACKUP_OK`, `CCTO_STATE_RECONCILED`, publisher service active,
+  LWM environment preserved, no Steam mutations). Old state retained
+  as a host-only backup; no claim about its creator or deletion.
+- [ ] **Independent host gate pending:** perform only one manual protected
+  `publisher_state_check` on the currently running WSL publisher and
+  confirm exact AppID/retained ID/permissions. Do not treat author-script
+  output as this separate Actions PASS.
 - [ ] Confirm the logged-in SteamCMD publisher account actually owns
   `3819497323` (public API creator alone does not authenticate local login).
-- [ ] Authorize and dispatch `update_existing` only when the mismatch is
-  resolved, then verify real published subscriber bytes, owner, title,
-  visibility (still public), version and changenote.
+- [ ] Do not dispatch `update_existing` as part of state repair. A future
+  separately approved real upload requires authenticated publisher-owner
+  verification and real published subscriber bytes, title, public visibility,
+  version and changenote checks.
 - [ ] Perform Steamworks tags step only with a separately authorized
   authenticated desktop runner and current public target checks.
 - [ ] **NO ACTUAL WORKSHOP UPDATE** executed by this source revision.
