@@ -1,5 +1,7 @@
 name: CCTO for VPE existing Workshop update (preserve visibility)
 on:
+  issues:
+    types: [opened]
   workflow_dispatch:
     inputs:
       mode:
@@ -33,17 +35,69 @@ concurrency:
   group: ccto-vpe-steam-existing-publishing
   cancel-in-progress: false
 jobs:
+  request_gate:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && github.event.issue.user.login == 'sucRo0629' && github.event.issue.title == '[publish:ccto-vpe-update]') }}
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.request.outputs.mode }}
+      exact_sha: ${{ steps.request.outputs.exact_sha }}
+      confirmation: ${{ steps.request.outputs.confirmation }}
+      create_new: ${{ steps.request.outputs.create_new }}
+    steps:
+      - name: Authenticate release request, pin main and prohibit creation
+        id: request
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTOR: ${{ github.event.issue.user.login }}
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_SHA: ${{ inputs.exact_main_sha }}
+          INPUT_CONFIRM: ${{ inputs.confirmation }}
+          INPUT_CREATE: ${{ inputs.create_new_item }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" == 'sucRo-RimWorld/CCTO-for-VPE' && "$GITHUB_REF" == 'refs/heads/main' ]] || exit 2
+          if [[ "$EVENT" == issues ]]; then
+            [[ "$ACTOR" == 'sucRo0629' && "$TITLE" == '[publish:ccto-vpe-update]' ]] || exit 2
+            [[ "$BODY" =~ ^source_sha=([0-9a-f]{40})$ ]] || exit 2
+            sha="${BASH_REMATCH[1]}"
+            mode=update_existing
+            confirm=UPDATE_EXISTING_ONLY
+            create=false
+          elif [[ "$EVENT" == workflow_dispatch ]]; then
+            sha="$INPUT_SHA"
+            mode="$INPUT_MODE"
+            confirm="$INPUT_CONFIRM"
+            create="$INPUT_CREATE"
+          else
+            exit 2
+          fi
+          [[ "$sha" =~ ^[0-9a-f]{40}$ && "$sha" == "$GITHUB_SHA" && "$create" == false ]] || exit 2
+          case "$mode" in
+            update_existing) [[ "$confirm" == UPDATE_EXISTING_ONLY ]] ;;
+            sync_tags_existing) [[ "$confirm" == TAGS_EXISTING_ONLY ]] ;;
+            preflight|runner_check|publisher_state_check|tag_runner_check) [[ -z "$confirm" ]] ;;
+            *) exit 2 ;;
+          esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "exact_sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "confirmation=$confirm" >> "$GITHUB_OUTPUT"
+          echo "create_new=$create" >> "$GITHUB_OUTPUT"
   preflight:
+    needs: request_gate
+    if: ${{ needs.request_gate.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - name: Verify manual default-branch authorization (no untrusted refs)
         shell: bash
         env:
-          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
-          REQUESTED_MODE: ${{ inputs.mode }}
-          CONFIRMATION: ${{ inputs.confirmation }}
-          CREATE_NEW: ${{ inputs.create_new_item }}
+          EXPECTED_SHA: ${{ needs.request_gate.outputs.exact_sha }}
+          REQUESTED_MODE: ${{ needs.request_gate.outputs.mode }}
+          CONFIRMATION: ${{ needs.request_gate.outputs.confirmation }}
+          CREATE_NEW: ${{ needs.request_gate.outputs.create_new }}
         run: |
           set -euo pipefail
           [[ "$GITHUB_REPOSITORY" == 'sucRo-RimWorld/CCTO-for-VPE' ]] || exit 2
@@ -96,8 +150,8 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   runner_check:
-    needs: preflight
-    if: ${{ inputs.mode == 'runner_check' }}
+    needs: [request_gate, preflight]
+    if: ${{ needs.request_gate.outputs.mode == 'runner_check' }}
     # Same dedicated host and GitHub environment as update_existing, but no SteamCMD invocation.
     runs-on: [self-hosted, linux, steamcmd-private-publisher]
     environment: steam-workshop-private
@@ -120,8 +174,8 @@ jobs:
           sha256sum -c sha256.txt
 
   publisher_state_check:
-    needs: preflight
-    if: ${{ inputs.mode == 'publisher_state_check' }}
+    needs: [request_gate, preflight]
+    if: ${{ needs.request_gate.outputs.mode == 'publisher_state_check' }}
     # Execute on the actual WSL SteamCMD publisher, never in a hosted/Windows job.
     # Only reads CCTO_STEAM_STATE; cannot mutate the state or contact Steam.
     runs-on: [self-hosted, linux, steamcmd-private-publisher]
@@ -135,7 +189,7 @@ jobs:
       - name: Validate private publisher state in read-only mode
         shell: bash
         env:
-          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+          EXPECTED_SHA: ${{ needs.request_gate.outputs.exact_sha }}
         run: |
           set -euo pipefail
           [[ "$GITHUB_SHA" == "$EXPECTED_SHA" ]] || exit 2
@@ -144,8 +198,8 @@ jobs:
           python3 Scripts/steamcmd_private.py --check-host-state
 
   update_existing:
-    needs: preflight
-    if: ${{ inputs.mode == 'update_existing' }}
+    needs: [request_gate, preflight]
+    if: ${{ needs.request_gate.outputs.mode == 'update_existing' }}
     # Dedicated, isolated publisher host. Do NOT attach this label to general PR/test runners.
     runs-on: [self-hosted, linux, steamcmd-private-publisher]
     environment: steam-workshop-private
@@ -167,8 +221,8 @@ jobs:
       - name: SteamCMD update existing item without changing visibility
         shell: bash
         env:
-          CREATE_NEW: ${{ inputs.create_new_item }}
-          CONFIRMATION: ${{ inputs.confirmation }}
+          CREATE_NEW: ${{ needs.request_gate.outputs.create_new }}
+          CONFIRMATION: ${{ needs.request_gate.outputs.confirmation }}
         run: |
           set -euo pipefail
           # CCTO_STEAMCMD_BIN, CCTO_STEAM_ACCOUNT and CCTO_STEAM_STATE
@@ -179,8 +233,8 @@ jobs:
             --execute --confirm "$CONFIRMATION"
 
   tag_runner_check:
-    needs: preflight
-    if: ${{ inputs.mode == 'tag_runner_check' }}
+    needs: [request_gate, preflight]
+    if: ${{ needs.request_gate.outputs.mode == 'tag_runner_check' }}
     runs-on: [self-hosted, windows, steamworks-tag-publisher]
     environment: steam-workshop-private
     timeout-minutes: 10
@@ -192,18 +246,18 @@ jobs:
       - name: Verify source revision and Steamworks desktop login without submitting tags
         shell: pwsh
         env:
-          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+          EXPECTED_SHA: ${{ needs.request_gate.outputs.exact_sha }}
         run: |
           if ($env:GITHUB_SHA -cne $env:EXPECTED_SHA) { throw 'Source SHA changed' }
           python Scripts/steamworks_tags.py --probe
           if ($LASTEXITCODE -ne 0) { throw 'Steamworks probe failed' }
 
   sync_tags:
-    needs: [preflight, update_existing]
+    needs: [request_gate, preflight, update_existing]
     # Supports an explicit tag-only repair and automatically runs after a
     # successful manual SteamCMD update. If the desktop Steam runner is not
     # configured, this job cannot run; NEVER consider upload fully synced.
-    if: ${{ always() && needs.preflight.result == 'success' && (inputs.mode == 'sync_tags_existing' || (inputs.mode == 'update_existing' && needs.update_existing.result == 'success')) }}
+    if: ${{ always() && needs.preflight.result == 'success' && (needs.request_gate.outputs.mode == 'sync_tags_existing' || (needs.request_gate.outputs.mode == 'update_existing' && needs.update_existing.result == 'success')) }}
     runs-on: [self-hosted, windows, steamworks-tag-publisher]
     environment: steam-workshop-private
     timeout-minutes: 12
@@ -215,7 +269,7 @@ jobs:
       - name: Recheck SHA and existing Workshop identity
         shell: pwsh
         env:
-          EXPECTED_SHA: ${{ inputs.exact_main_sha }}
+          EXPECTED_SHA: ${{ needs.request_gate.outputs.exact_sha }}
         run: |
           if ($env:GITHUB_SHA -cne $env:EXPECTED_SHA) { throw 'Source SHA changed' }
           python Scripts/steamworks_tags.py
@@ -223,8 +277,8 @@ jobs:
       - name: Apply tags through authenticated desktop Steamworks
         shell: pwsh
         env:
-          MODE: ${{ inputs.mode }}
-          CONFIRMATION: ${{ inputs.confirmation }}
+          MODE: ${{ needs.request_gate.outputs.mode }}
+          CONFIRMATION: ${{ needs.request_gate.outputs.confirmation }}
         run: |
           if ($env:MODE -eq 'sync_tags_existing') {
             if ($env:CONFIRMATION -cne 'TAGS_EXISTING_ONLY') { throw 'Tag approval missing' }
